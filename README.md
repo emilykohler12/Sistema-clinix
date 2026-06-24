@@ -6,7 +6,7 @@ Dashboard frontend para gestión y exploración de registros de pacientes, desar
 
 ## 🚀 Demo
 
-[Ver demo en Vercel](https://clinix.vercel.app) ← actualizar con la URL real después del deploy
+[Ver demo en Vercel](https://sistema-clinix.vercel.app)
 
 ---
 
@@ -18,7 +18,7 @@ Dashboard frontend para gestión y exploración de registros de pacientes, desar
 - ➕ Modal para agregar y editar pacientes con validación de formulario
 - 🗑️ Eliminación con modal de confirmación y animación de salida
 - ⭐ Favoritos persistidos en localStorage
-- 💀 Skeletons loader durante la carga
+- 💀 Skeletons loader con animación shimmer durante la carga
 - ♾️ Infinite scroll con paginación de la API
 - 📱 Diseño responsive (mobile, tablet, desktop)
 - 🔔 Notificaciones toast de éxito y error
@@ -27,11 +27,12 @@ Dashboard frontend para gestión y exploración de registros de pacientes, desar
 - 🌙 Dark mode con persistencia en localStorage
 - ⊞ Toggle entre vista grilla y vista lista
 - 🔤 Ordenamiento A→Z y Z→A por nombre
-- 📅 Filtro por año de registro (2023–2026)
+- 📅 Filtro dinámico por año de registro (generado desde los datos reales)
 - 📊 Barra de estadísticas (total, favoritos, agregados en sesión)
 - 🏷️ Badge "Nuevo" en pacientes agregados durante la sesión
 - 📄 Página de detalle por paciente con React Router
 - 🎨 Avatar con fallback a iniciales coloreadas cuando la imagen falla
+- 📖 Documentación de componentes con Storybook
 
 ---
 
@@ -43,6 +44,8 @@ Dashboard frontend para gestión y exploración de registros de pacientes, desar
 | Vite | Bundler y dev server |
 | Tailwind CSS | Estilos utilitarios |
 | React Router v7 | Navegación entre páginas |
+| Zustand | Estado global |
+| Storybook | Documentación de componentes |
 | Vitest | Tests unitarios |
 | Testing Library | Testing de hooks y componentes |
 
@@ -52,7 +55,8 @@ Dashboard frontend para gestión y exploración de registros de pacientes, desar
 
 ## 🌐 API
 
-Los datos se obtienen de MockAPI: GET https://63bedcf7f5cfc0949b634fc8.mockapi.io/users?page=1&limit=10
+Los datos se obtienen de MockAPI:
+GET https://63bedcf7f5cfc0949b634fc8.mockapi.io/users?page=1&limit=10
 
 Campos utilizados: `id`, `name`, `avatar`, `description`, `website`, `createdAt`
 
@@ -63,27 +67,41 @@ La paginación usa los parámetros `page` y `limit`. El infinite scroll detecta 
 ## 📁 Estructura del proyecto
 src/
 
-├── components/       # Componentes reutilizables
+├── components/
 
-│   ├── Avatar.tsx
+│   ├── atoms/            # Elementos base indivisibles
 
-│   ├── ConfirmModal.tsx
+│   │   ├── Avatar.tsx
 
-│   ├── Navbar.tsx
+│   │   ├── ProgressBar.tsx
 
-│   ├── PatientCard.tsx
+│   │   └── Skeleton.tsx
 
-│   ├── PatientModal.tsx
+│   ├── molecules/        # Combinaciones de átomos
 
-│   ├── ProgressBar.tsx
+│   │   ├── DateFilter.tsx
 
-│   ├── Skeleton.tsx
+│   │   ├── SearchBar.tsx
 
-│   ├── StatsBar.tsx
+│   │   └── StatCard.tsx
 
-│   └── Toast.tsx
+│   └── organisms/        # Secciones completas de UI
 
-├── hooks/            # Lógica reutilizable
+│       ├── ConfirmModal.tsx
+
+│       ├── Navbar.tsx
+
+│       ├── PatientCard.tsx
+
+│       ├── PatientModal.tsx
+
+│       ├── Sidebar.tsx
+
+│       ├── StatsBar.tsx
+
+│       └── Toast.tsx
+
+├── hooks/                # Lógica reutilizable
 
 │   ├── useDebounce.ts
 
@@ -93,17 +111,21 @@ src/
 
 │   └── useToast.ts
 
-├── pages/            # Páginas principales
+├── pages/                # Páginas principales
 
 │   ├── Home.tsx
 
 │   └── PatientDetail.tsx
 
-├── services/         # Comunicación con la API
+├── services/             # Comunicación con la API
 
 │   └── patientService.ts
 
-├── test/             # Tests unitarios
+├── store/                # Estado global con Zustand
+
+│   └── useClinicStore.ts
+
+├── test/                 # Tests unitarios
 
 │   ├── avatarHelper.test.ts
 
@@ -113,11 +135,11 @@ src/
 
 │   └── setup.ts
 
-├── types/            # Interfaces TypeScript
+├── types/                # Interfaces TypeScript
 
 │   └── index.ts
 
-└── utils/            # Funciones auxiliares
+└── utils/                # Funciones auxiliares
 
 ├── avatarHelper.ts
 
@@ -129,14 +151,17 @@ src/
 
 ```bash
 # Clonar el repositorio
-git clone https://github.com/tu-usuario/clinix.git
-cd clinix
+git clone https://github.com/emilykohler12/Sistema-clinix.git
+cd Sistema-clinix
 
 # Instalar dependencias
 npm install
 
 # Correr en desarrollo
 npm run dev
+
+# Correr Storybook
+npm run storybook
 
 # Correr tests
 npm run test:run
@@ -163,13 +188,21 @@ npm run test:run
 
 ## 📐 Decisiones técnicas
 
-**Infinite scroll manual** — se implementó con `IntersectionObserver` en vez de una librería externa para mantener control total y evitar dependencias innecesarias.
+**Atomic Design** — los componentes están organizados en átomos, moléculas y organismos siguiendo la metodología de Brad Frost, lo que facilita la reutilización y el mantenimiento.
+
+**Zustand para estado global** — reemplaza el prop drilling que existía con Context API. Cualquier componente accede directamente al store sin necesidad de pasar props por múltiples niveles.
+
+**Infinite scroll manual** — implementado con `IntersectionObserver` en vez de una librería externa para mantener control total y evitar dependencias innecesarias.
 
 **Avatar con fallback** — la API devuelve avatares inválidos (`{}`, string vacío, URLs rotas). Se resuelve con un componente `Avatar` que detecta errores de carga (`onError`) y muestra iniciales con color consistente por ID.
 
-**Estado en memoria** — los cambios (agregar, editar, eliminar) viven en el estado de React. Al recargar, la app vuelve a los datos de la API. Esto es el comportamiento esperado según el enunciado del challenge.
+**Estado en memoria** — los cambios (agregar, editar, eliminar) viven en el estado de Zustand. Al recargar, la app vuelve a los datos de la API. Esto es el comportamiento esperado según el enunciado del challenge.
 
-**CSS variables para temas** — dark/light mode implementado con variables CSS en `:root` y `html.dark`, sin dependencias externas. Esto permite que todos los componentes respondan al tema con una sola clase en el `html`.
+**CSS variables para temas** — dark/light mode implementado con variables CSS en `:root` y `html.dark`, sin dependencias externas. Todos los componentes responden al tema con una sola clase en el `html`.
+
+**Shimmer skeleton** — la animación de carga usa un gradiente que se desplaza de izquierda a derecha, replicando la forma visual de una `PatientCard` real.
+
+**Filtro de años dinámico** — los botones de año se generan automáticamente desde los datos reales de pacientes, por lo que cualquier año que aparezca en los datos se muestra como opción de filtro.
 
 ---
 
