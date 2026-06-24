@@ -1,0 +1,232 @@
+@import "tailwindcss";
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    font-family: 'Albert Sans', sans-serif;
+  }
+
+  body {
+    margin: 0;
+  }
+
+  :root {
+    --bg-page: #b3d4ff;
+    --bg-sidebar: #4c6f87;
+    --bg-card: #ffffff;
+    --bg-card-border: #d4e8ff;
+    --bg-card-divider: #e8f4ff;
+    --text-primary: #1a2f3a;
+    --text-secondary: #4c6f87;
+    --text-muted: #7a9db5;
+    --text-sidebar: #ffffff;
+    --accent: #4c6f87;
+    --accent-2: #6aa6aa;
+    --id-bg: #e0f0ff;
+    --delete-bg: #fef2f2;
+    --star-empty: #c8dff0;
+  }
+
+  html.dark {
+    --bg-page: #1a2f3a;
+    --bg-sidebar: #12212b;
+    --bg-card: #1e3545;
+    --bg-card-border: rgba(255,255,255,0.08);
+    --bg-card-divider: rgba(255,255,255,0.06);
+    --text-primary: #e8f4ff;
+    --text-secondary: #6aa6aa;
+    --text-muted: #4c6f87;
+    --text-sidebar: #ffffff;
+    --accent: #6aa6aa;
+    --accent-2: #4c6f87;
+    --id-bg: rgba(76,111,135,0.3);
+    --delete-bg: rgba(255,107,107,0.15);
+    --star-empty: rgba(255,255,255,0.2);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(8px) scale(0.97); }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes progress-slide {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
+.animate-fadeOut { animation: fadeOut 0.25s ease-in forwards; }
+.animate-slideIn { animation: slideIn 0.25s ease-out forwards; }
+
+.font-display { font-family: 'Playfair Display', serif; }
+
+/* =========================================================
+   Clases de componentes (reemplazan estilos inline)
+   ========================================================= */
+
+/* Cards */
+.card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+}
+.card-divider-top {
+  border-top: 1px solid var(--bg-card-divider);
+}
+.card-accent-bar {
+  background: linear-gradient(90deg, #4c6f87, #6aa6aa);
+}
+
+/* Texto */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
+.text-error { color: #FF6B6B; }
+.link-accent { color: var(--accent-2); }
+
+/* Badges */
+.badge-id {
+  background-color: var(--id-bg);
+  color: var(--accent);
+}
+.badge-new {
+  background-color: #e6f7f6;
+  color: #6aa6aa;
+}
+
+/* Botones de icono */
+.icon-btn-edit {
+  background-color: var(--id-bg);
+  color: var(--accent);
+}
+.icon-btn-delete {
+  background-color: var(--delete-bg);
+  color: #FF6B6B;
+}
+
+/* Favorito */
+.star-active { color: #f59e0b; }
+.star-inactive { color: var(--star-empty); }
+
+/* Toast */
+.toast-success { background-color: #6aa6aa; }
+.toast-error { background-color: #FF6B6B; }
+
+/* StatsBar (usa --stat-color seteada inline por tarjeta, ver nota arriba) */
+.stat-card {
+  background-color: var(--bg-card);
+  border: 2px solid var(--bg-card-border);
+}
+.stat-card.active {
+  border-color: var(--stat-color);
+}
+.stat-card-clickable {
+  cursor: pointer;
+}
+.stat-icon {
+  background-color: var(--id-bg);
+}
+.stat-value {
+  color: var(--stat-color);
+}
+.stat-arrow {
+  color: var(--stat-color);
+}
+
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--bg-card-divider) 25%,
+    var(--bg-card-border) 50%,
+    var(--bg-card-divider) 75%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+.skeleton-bar-top {
+  background-color: var(--bg-card-border);
+}
+
+/* Overlay genérico (modales) */
+.overlay {
+  background-color: rgba(0,0,0,0.5);
+}
+
+/* Sidebar */
+.sidebar-bg {
+  background-color: var(--bg-sidebar);
+}
+.sidebar-border {
+  border-color: rgba(255,255,255,0.1);
+}
+.sidebar-subtitle {
+  color: rgba(255,255,255,0.5);
+}
+.sidebar-nav-active {
+  background-color: rgba(255,255,255,0.15);
+}
+
+/* Navbar */
+.navbar-gradient {
+  background: linear-gradient(135deg, #005B94 0%, #3AAFA9 100%);
+}
+.navbar-icon-box {
+  background-color: rgba(255,255,255,0.2);
+}
+.navbar-subtitle {
+  color: rgba(255,255,255,0.7);
+}
+.btn-add-patient {
+  background-color: #FF6B6B;
+  color: white;
+}
+.navbar-icon-btn {
+  background-color: rgba(255,255,255,0.15);
+}
+.navbar-input {
+  background-color: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+.navbar-search-icon {
+  color: rgba(255,255,255,0.5);
+}
+.navbar-select-option {
+  color: #2B2D42;
+}
+
+/* Progress bar */
+.progress-track {
+  background-color: rgba(0,91,148,0.2);
+}
+.progress-bar-fill {
+  background: linear-gradient(90deg, #005B94, #3AAFA9, #005B94);
+  background-size: 200% 100%;
+  animation: progress-slide 1.5s linear infinite;
+  width: 60%;
+}
+
+/* Modal (PatientModal) */
+.modal-input {
+  background-color: var(--bg-page);
+  border-color: var(--bg-card-border);
+  color: var(--text-primary);
+}
+.btn-save-gradient {
+  background: linear-gradient(135deg, #005B94, #3AAFA9);
+}
