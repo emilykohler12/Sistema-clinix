@@ -23,6 +23,7 @@ export function Home() {
   const [search, setSearch] = useState('')
   const [sortOption, setSortOption] = useState<SortOption>('az')
   const [patientToDelete, setPatientToDelete] = useState<Patient | null>(null)
+  const [removingId, setRemovingId] = useState<string | null>(null)
   const [showingNewOnly, setShowingNewOnly] = useState(false)
   const [dateFilter, setDateFilter] = useState<string>('all')
 
@@ -73,10 +74,14 @@ export function Home() {
 
   function handleDelete() {
     if (!patientToDelete) return
-    deletePatient(patientToDelete.id)
-    removeNewPatientId(patientToDelete.id)
-    addToast('Paciente eliminado', 'success')
+    setRemovingId(patientToDelete.id)
     setPatientToDelete(null)
+    setTimeout(() => {
+      deletePatient(patientToDelete.id)
+      removeNewPatientId(patientToDelete.id)
+      addToast('Paciente eliminado', 'success')
+      setRemovingId(null)
+    }, 250)
   }
 
   const gridClass = viewMode === 'grid'
@@ -120,10 +125,10 @@ export function Home() {
           />
 
           <DateFilter
-  dateFilter={dateFilter}
-  onDateFilterChange={setDateFilter}
-  patients={patients}
-/>
+            dateFilter={dateFilter}
+            onDateFilterChange={setDateFilter}
+            patients={patients}
+          />
 
           {favoritePatients.length > 0 && (
             <section className="mb-8">
@@ -140,6 +145,7 @@ export function Home() {
                     patient={p}
                     isFavorite={true}
                     isNew={newPatientIds.has(p.id)}
+                    isRemoving={removingId === p.id}
                     onToggleFavorite={toggleFavorite}
                     onEdit={openEdit}
                     onDelete={setPatientToDelete}
@@ -203,6 +209,7 @@ export function Home() {
                   patient={p}
                   isFavorite={false}
                   isNew={newPatientIds.has(p.id)}
+                  isRemoving={removingId === p.id}
                   onToggleFavorite={toggleFavorite}
                   onEdit={openEdit}
                   onDelete={setPatientToDelete}

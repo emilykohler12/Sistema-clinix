@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Avatar } from '../atoms/Avatar'
 import type { Patient } from '../../types'
@@ -7,24 +6,19 @@ interface PatientCardProps {
   patient: Patient
   isFavorite: boolean
   isNew?: boolean
+  isRemoving?: boolean
   onToggleFavorite: (id: string) => void
   onEdit: (patient: Patient) => void
   onDelete: (patient: Patient) => void
   viewMode?: 'grid' | 'list'
 }
 
-export function PatientCard({ patient, isFavorite, isNew = false, onToggleFavorite, onEdit, onDelete, viewMode = 'grid' }: PatientCardProps) {
-  const [removing, setRemoving] = useState(false)
+export function PatientCard({ patient, isFavorite, isNew = false, isRemoving = false, onToggleFavorite, onEdit, onDelete, viewMode = 'grid' }: PatientCardProps) {
   const navigate = useNavigate()
-
-  function handleDelete() {
-    setRemoving(true)
-    setTimeout(() => onDelete(patient), 250)
-  }
 
   if (viewMode === 'list') {
     return (
-      <div className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all hover:shadow-md card ${removing ? 'animate-fadeOut' : 'animate-fadeIn'}`}>
+      <div className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all hover:shadow-md card ${isRemoving ? 'animate-fadeOut' : 'animate-fadeIn'}`}>
         <Avatar avatar={patient.avatar} name={patient.name} id={patient.id} size="sm" />
         <div className="flex-1 min-w-0 cursor-pointer" onClick={() => navigate(`/patient/${patient.id}`)}>
           <p className="font-semibold text-sm truncate font-display text-primary">{patient.name}</p>
@@ -36,14 +30,14 @@ export function PatientCard({ patient, isFavorite, isNew = false, onToggleFavori
             <span className={isFavorite ? 'star-active' : 'star-inactive'}>★</span>
           </button>
           <button onClick={() => onEdit(patient)} className="text-xs px-3 py-1 rounded-lg font-medium icon-btn-edit">✏️</button>
-          <button onClick={handleDelete} className="text-xs px-3 py-1 rounded-lg font-medium icon-btn-delete">🗑️</button>
+          <button onClick={() => onDelete(patient)} className="text-xs px-3 py-1 rounded-lg font-medium icon-btn-delete">🗑️</button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className={`rounded-2xl overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1 card ${removing ? 'animate-fadeOut' : 'animate-fadeIn'}`}>
+    <div className={`rounded-2xl overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1 card ${isRemoving ? 'animate-fadeOut' : 'animate-fadeIn'}`}>
       <div className="h-1.5 card-accent-bar" />
       <div className="p-4">
         <div className="flex items-start gap-3 mb-3">
@@ -91,7 +85,7 @@ export function PatientCard({ patient, isFavorite, isNew = false, onToggleFavori
               ✏️
             </button>
             <button
-              onClick={handleDelete}
+              onClick={() => onDelete(patient)}
               className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-110 icon-btn-delete"
             >
               🗑️
