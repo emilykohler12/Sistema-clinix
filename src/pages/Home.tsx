@@ -13,7 +13,7 @@ import type { Patient, SortOption, ViewMode } from '../types'
 
 export function Home() {
   const {
-    patients, loading, error, hasMore, loadMore,
+    patients, loading, error, hasMore, loadMore, searchPatients, resetAndLoad,
     deletePatient, isFavorite, toggleFavorite, favorites,
     addToast, openEdit, openAdd, newPatientIds, removeNewPatientId,
   } = useClinicStore()
@@ -26,10 +26,12 @@ export function Home() {
   const [removingId, setRemovingId] = useState<string | null>(null)
   const [showingNewOnly, setShowingNewOnly] = useState(false)
   const [dateFilter, setDateFilter] = useState<string>('all')
+  const [isSearchMode, setIsSearchMode] = useState(false)
 
   const debouncedSearch = useDebounce(search, 300)
   const bottomRef = useRef<HTMLDivElement | null>(null)
   const initialized = useRef(false)
+  const observerRef = useRef<IntersectionObserver | null>(null)
 
   useEffect(() => {
     if (!initialized.current) {
@@ -47,18 +49,34 @@ export function Home() {
     localStorage.setItem('clinix_view', viewMode)
   }, [viewMode])
 
+  // Búsqueda del lado del servidor
+  useEffect(() => {
+    if (debouncedSearch.trim() === '') {
+      if (isSearchMode) {
+        setIsSearchMode(false)
+        resetAndLoad()
+      }
+      return
+    }
+    setIsSearchMode(true)
+    searchPatients(debouncedSearch)
+  }, [debouncedSearch])
+
+  // Observer separado, no depende de viewMode
   const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
-    if (entries[0].isIntersecting && hasMore && !loading) loadMore()
-  }, [hasMore, loading, loadMore])
+    if (entries[0].isIntersecting && hasMore && !loading && !isSearchMode) {
+      loadMore()
+    }
+  }, [hasMore, loading, isSearchMode])
 
   useEffect(() => {
-    const observer = new IntersectionObserver(handleObserver, { threshold: 0.1 })
-    if (bottomRef.current) observer.observe(bottomRef.current)
-    return () => observer.disconnect()
+    if (observerRef.current) observerRef.current.disconnect()
+    observerRef.current = new IntersectionObserver(handleObserver, { threshold: 0.1 })
+    if (bottomRef.current) observerRef.current.observe(bottomRef.current)
+    return () => observerRef.current?.disconnect()
   }, [handleObserver])
 
   const filteredAndSorted = patients
-    .filter(p => p.name.trim().toLowerCase().includes(debouncedSearch.toLowerCase()))
     .filter(p => showingNewOnly ? newPatientIds.has(p.id) : true)
     .filter(p => {
       if (dateFilter === 'all') return true
@@ -130,6 +148,21 @@ export function Home() {
             patients={patients}
           />
 
+          {isSearchMode && (
+            <div className="mb-4 flex items-center gap-2">
+              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                {patients.length} resultado{patients.length !== 1 ? 's' : ''} para "{debouncedSearch}"
+              </span>
+              <button
+                onClick={() => setSearch('')}
+                className="text-xs px-2 py-0.5 rounded-full"
+                style={{ backgroundColor: 'var(--delete-bg)', color: '#FF6B6B' }}
+              >
+                × Limpiar
+              </button>
+            </div>
+          )}
+
           {favoritePatients.length > 0 && (
             <section className="mb-8">
               <h3 className="font-display font-bold mb-3 flex items-center gap-2 star-active">
@@ -158,7 +191,7 @@ export function Home() {
 
           <section>
             <h3 className="font-display font-bold mb-3 flex items-center gap-2 text-primary">
-              {showingNewOnly ? '✚ Agregados en esta sesión' : 'Todos los pacientes'}
+              {showingNewOnly ? '✚ Agregados en esta sesión' : isSearchMode ? 'Resultados de búsqueda' : 'Todos los pacientes'}
               <span className="badge-id text-xs px-2 py-0.5 rounded-full font-sans font-medium">
                 {allPatients.length}
               </span>
@@ -189,14 +222,18 @@ export function Home() {
               <div className="text-center py-16 flex flex-col items-center gap-3">
                 <span className="text-5xl">{showingNewOnly ? '✚' : '🔍'}</span>
                 <p className="font-display font-bold text-lg text-primary">
-                  {showingNewOnly ? 'No agregaste pacientes en esta sesión' : 'No se encontraron pacientes'}
+                  {showingNewOnly
+                    ? 'No agregaste pacientes en esta sesión'
+                    : isSearchMode
+                    ? `No se encontraron pacientes con "${debouncedSearch}"`
+                    : 'No se encontraron pacientes'}
                 </p>
-                {search && (
+                {isSearchMode && (
                   <button
                     onClick={() => setSearch('')}
                     className="badge-id text-sm px-4 py-2 rounded-lg"
                   >
-                    Limpiar búsqueda
+                    Ver todos los pacientes
                   </button>
                 )}
               </div>

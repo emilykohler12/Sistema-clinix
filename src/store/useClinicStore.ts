@@ -8,27 +8,25 @@ let page = 1
 let loadingRef = false
 
 interface ClinicStore {
-  // Patients
   patients: Patient[]
   loading: boolean
   error: string | null
   hasMore: boolean
   loadMore: () => Promise<void>
+  searchPatients: (term: string) => Promise<void>
+  resetAndLoad: () => Promise<void>
   addPatient: (patient: Patient) => void
   updatePatient: (patient: Patient) => void
   deletePatient: (id: string) => void
 
-  // Favorites
   favorites: string[]
   toggleFavorite: (id: string) => void
   isFavorite: (id: string) => boolean
 
-  // Toast
   toasts: Toast[]
   addToast: (message: string, type: ToastType) => void
   removeToast: (id: string) => void
 
-  // Modal
   modalPatient: Patient | undefined
   modalMode: 'add' | 'edit' | null
   openAdd: () => void
@@ -36,16 +34,17 @@ interface ClinicStore {
   closeModal: () => void
   handleSave: (patient: Patient) => void
 
-  // Session
   newPatientIds: Set<string>
   addNewPatientId: (id: string) => void
   removeNewPatientId: (id: string) => void
+
+  patientDetail: Patient | null
+  fetchPatientById: (id: string) => Promise<void>
 }
 
 export const useClinicStore = create<ClinicStore>()(
   persist(
     (set, get) => ({
-      // ── Patients ──────────────────────────────────────────
       patients: [],
       loading: false,
       error: null,
@@ -56,7 +55,6 @@ export const useClinicStore = create<ClinicStore>()(
         if (loadingRef || !hasMore) return
         loadingRef = true
         set({ loading: true, error: null })
-
         try {
           const data = await getPatients(page, LIMIT)
           if (data.length < LIMIT) set({ hasMore: false })
@@ -74,6 +72,28 @@ export const useClinicStore = create<ClinicStore>()(
         }
       },
 
+      searchPatients: async (term: string) => {
+        if (loadingRef) return
+        loadingRef = true
+        set({ loading: true, error: null })
+        try {
+          const data = await getPatients(1, 100, term)
+          set({ patients: data, hasMore: false })
+        } catch {
+          set({ error: 'Error al buscar pacientes.' })
+        } finally {
+          loadingRef = false
+          set({ loading: false })
+        }
+      },
+
+      resetAndLoad: async () => {
+        page = 1
+        loadingRef = false
+        set({ patients: [], hasMore: true, error: null })
+        await get().loadMore()
+      },
+
       addPatient: (patient) =>
         set(state => ({ patients: [patient, ...state.patients] })),
 
@@ -83,12 +103,11 @@ export const useClinicStore = create<ClinicStore>()(
         })),
 
       deletePatient: (id) =>
-  set(state => ({
-    patients: state.patients.filter(p => p.id !== id),
-    favorites: state.favorites.filter(f => f !== id),
-  })),
+        set(state => ({
+          patients: state.patients.filter(p => p.id !== id),
+          favorites: state.favorites.filter(f => f !== id),
+        })),
 
-      // ── Favorites ─────────────────────────────────────────
       favorites: [],
 
       toggleFavorite: (id) =>
@@ -100,7 +119,6 @@ export const useClinicStore = create<ClinicStore>()(
 
       isFavorite: (id) => get().favorites.includes(id),
 
-      // ── Toast ─────────────────────────────────────────────
       toasts: [],
 
       addToast: (message, type) =>
@@ -113,14 +131,11 @@ export const useClinicStore = create<ClinicStore>()(
           toasts: state.toasts.filter(t => t.id !== id)
         })),
 
-      // ── Modal ─────────────────────────────────────────────
       modalPatient: undefined,
       modalMode: null,
 
       openAdd: () => set({ modalPatient: undefined, modalMode: 'add' }),
-
       openEdit: (patient) => set({ modalPatient: patient, modalMode: 'edit' }),
-
       closeModal: () => set({ modalPatient: undefined, modalMode: null }),
 
       handleSave: (patient) => {
@@ -136,7 +151,6 @@ export const useClinicStore = create<ClinicStore>()(
         closeModal()
       },
 
-      // ── Session ───────────────────────────────────────────
       newPatientIds: new Set<string>(),
 
       addNewPatientId: (id) =>
@@ -148,6 +162,23 @@ export const useClinicStore = create<ClinicStore>()(
           s.delete(id)
           return { newPatientIds: s }
         }),
+
+      patientDetail: null,
+
+      fetchPatientById: async (id: string) => {
+        set({ loading: true, error: null })
+        try {
+          const BASE_URL = import.meta.env.VITE_API_URL
+          const response = await fetch(`${BASE_URL}/${id}`)
+          if (!response.ok) throw new Error('Paciente no encontrado')
+          const data = await response.json()
+          set({ patientDetail: data })
+        } catch {
+          set({ error: 'No se pudo cargar el paciente.' })
+        } finally {
+          set({ loading: false })
+        }
+      },
     }),
     {
       name: 'clinix-store',
