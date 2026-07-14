@@ -1,19 +1,21 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 import { Avatar } from './Avatar'
 
-const meta: Meta<typeof Avatar> = {
+const meta = {
   title: 'Atoms/Avatar',
   component: Avatar,
-}
-export default meta
+  tags: ['autodocs'],
+  parameters: { layout: 'centered' },
+} satisfies Meta<typeof Avatar>
 
-type Story = StoryObj<typeof Avatar>
+export default meta
+type Story = StoryObj<typeof meta>
 
 export const ConImagen: Story = {
   args: {
-    avatar: 'https://i.pravatar.cc/150?img=1',
-    name: 'María López',
-    id: '1',
+    avatar: 'https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/440.jpg',
+    name: 'Hazel Nicolas',
+    id: '43',
     size: 'md',
   },
 }
@@ -21,16 +23,34 @@ export const ConImagen: Story = {
 export const SinImagen: Story = {
   args: {
     avatar: '',
-    name: 'Carlos Pérez',
-    id: '2',
+    name: 'Juan Pérez',
+    id: '10',
     size: 'md',
+  },
+}
+
+export const AvatarInvalido: Story = {
+  args: {
+    avatar: {},
+    name: 'María García',
+    id: '5',
+    size: 'md',
+  },
+}
+
+export const Pequeño: Story = {
+  args: {
+    avatar: '',
+    name: 'Carlos López',
+    id: '7',
+    size: 'sm',
   },
 }
 
 export const Grande: Story = {
   args: {
     avatar: '',
-    name: 'Ana García',
+    name: 'Ana Martínez',
     id: '3',
     size: 'lg',
   },

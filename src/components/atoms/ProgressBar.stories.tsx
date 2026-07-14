@@ -1,22 +1,20 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 import { ProgressBar } from './ProgressBar'
 
-const meta: Meta<typeof ProgressBar> = {
+const meta = {
   title: 'Atoms/ProgressBar',
   component: ProgressBar,
-}
-export default meta
+  tags: ['autodocs'],
+  parameters: { layout: 'fullscreen' },
+} satisfies Meta<typeof ProgressBar>
 
-type Story = StoryObj<typeof ProgressBar>
+export default meta
+type Story = StoryObj<typeof meta>
 
 export const Cargando: Story = {
-  args: {
-    loading: true,
-  },
+  args: { loading: true },
 }
 
-export const Inactivo: Story = {
-  args: {
-    loading: false,
-  },
+export const Oculto: Story = {
+  args: { loading: false },
 }

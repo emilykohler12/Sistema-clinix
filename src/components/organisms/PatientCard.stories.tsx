@@ -1,79 +1,60 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 import { PatientCard } from './PatientCard'
+import { fn } from 'storybook/test'
 
-const meta: Meta<typeof PatientCard> = {
+const mockPatient = {
+  id: '43',
+  name: 'Hazel Nicolas',
+  avatar: 'https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/440.jpg',
+  description: 'Paciente con historial de hipertensión arterial. Requiere seguimiento mensual y control de presión.',
+  website: 'https://ejemplo.com',
+  createdAt: '2023-03-06T10:24:04.110Z',
+}
+
+const meta = {
   title: 'Organisms/PatientCard',
   component: PatientCard,
-}
-export default meta
-
-type Story = StoryObj<typeof PatientCard>
-
-const pacienteBase = {
-  id: '1',
-  name: 'María López',
-  avatar: 'https://i.pravatar.cc/150?img=5',
-  description: 'Paciente con historial de hipertensión y diabetes tipo 2.',
-  website: 'https://ejemplo.com',
-  createdAt: '2024-03-15T10:00:00.000Z',
-}
-
-export const Normal: Story = {
+  tags: ['autodocs'],
+  parameters: { layout: 'padded' },
   args: {
-    patient: pacienteBase,
+    patient: mockPatient,
     isFavorite: false,
     isNew: false,
+    isRemoving: false,
+    onToggleFavorite: fn(),
+    onEdit: fn(),
+    onDelete: fn(),
     viewMode: 'grid',
-    onToggleFavorite: () => {},
-    onEdit: () => {},
-    onDelete: () => {},
   },
-}
+} satisfies Meta<typeof PatientCard>
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {}
 
 export const Favorito: Story = {
-  args: {
-    patient: pacienteBase,
-    isFavorite: true,
-    isNew: false,
-    viewMode: 'grid',
-    onToggleFavorite: () => {},
-    onEdit: () => {},
-    onDelete: () => {},
-  },
+  args: { isFavorite: true },
 }
 
 export const Nuevo: Story = {
-  args: {
-    patient: { ...pacienteBase, id: '2', name: 'Carlos Pérez' },
-    isFavorite: false,
-    isNew: true,
-    viewMode: 'grid',
-    onToggleFavorite: () => {},
-    onEdit: () => {},
-    onDelete: () => {},
-  },
+  args: { isNew: true },
 }
 
-export const VistaLista: Story = {
-  args: {
-    patient: pacienteBase,
-    isFavorite: false,
-    isNew: false,
-    viewMode: 'list',
-    onToggleFavorite: () => {},
-    onEdit: () => {},
-    onDelete: () => {},
-  },
+export const NuevoYFavorito: Story = {
+  args: { isFavorite: true, isNew: true },
 }
 
 export const SinAvatar: Story = {
   args: {
-    patient: { ...pacienteBase, avatar: '' },
-    isFavorite: false,
-    isNew: false,
-    viewMode: 'grid',
-    onToggleFavorite: () => {},
-    onEdit: () => {},
-    onDelete: () => {},
+    patient: { ...mockPatient, avatar: '' },
   },
+}
+
+export const VistaLista: Story = {
+  args: { viewMode: 'list' },
+}
+
+export const Eliminando: Story = {
+  args: { isRemoving: true },
 }
