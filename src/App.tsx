@@ -1,6 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
 import { Home } from './pages/Home'
-import { PatientDetail } from './pages/PatientDetail'
 import { PatientModal } from './components/organisms/PatientModal'
 import { Toast } from './components/organisms/Toast'
 import { useClinicStore } from './store/useClinicStore'
@@ -12,7 +11,7 @@ export default function App() {
     <>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/patient/:id" element={<PatientDetail />} />
+        <Route path="*" element={<Home />} />
       </Routes>
 
       {modalMode && (

@@ -1,8 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { PatientCard } from './PatientCard'
 import { fn } from 'storybook/test'
+import type { Patient } from '../../types'
 
-const mockPatient = {
+const mockPatient: Patient = {
   id: '43',
   name: 'Hazel Nicolas',
   avatar: 'https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/440.jpg',
@@ -21,10 +22,11 @@ const meta = {
     isFavorite: false,
     isNew: false,
     isRemoving: false,
-    onToggleFavorite: fn(),
-    onEdit: fn(),
-    onDelete: fn(),
-    viewMode: 'grid',
+    onToggleFavorite: fn() as (id: string) => void,
+    onEdit: fn() as (patient: Patient) => void,
+    onDelete: fn() as (patient: Patient) => void,
+    onViewDetail: fn() as (patient: Patient) => void,
+    viewMode: 'grid' as const,
   },
 } satisfies Meta<typeof PatientCard>
 

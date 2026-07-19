@@ -28,21 +28,21 @@
   }
 
   html.dark {
-    --bg-page: #1a2f3a;
-    --bg-sidebar: #12212b;
-    --bg-card: #1e3545;
-    --bg-card-border: rgba(255,255,255,0.08);
-    --bg-card-divider: rgba(255,255,255,0.06);
-    --text-primary: #e8f4ff;
-    --text-secondary: #6aa6aa;
-    --text-muted: #4c6f87;
-    --text-sidebar: #ffffff;
-    --accent: #6aa6aa;
-    --accent-2: #4c6f87;
-    --id-bg: rgba(76,111,135,0.3);
-    --delete-bg: rgba(255,107,107,0.15);
-    --star-empty: rgba(255,255,255,0.2);
-  }
+  --bg-page: #0f1f2a;
+  --bg-sidebar: #0a1520;
+  --bg-card: #204266;
+  --bg-card-border: rgba(255, 255, 255, 0.219);
+  --bg-card-divider: rgba(255, 255, 255, 0.192);
+  --text-primary: #f0f8ff;
+  --text-secondary: #a8d4d8;
+  --text-muted: #7adae0;
+  --text-sidebar: #ffffff;
+  --accent: #74e2e7;
+  --accent-2: #d7ebec;
+  --id-bg: rgba(105, 216, 224, 0.336);
+  --delete-bg: rgba(255,107,107,0.2);
+  --star-empty: rgba(255, 255, 255, 0.281);
+}
 }
 
 @keyframes fadeIn {

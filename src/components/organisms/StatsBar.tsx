@@ -10,13 +10,13 @@ interface StatsBarProps {
 
 export function StatsBar({ total, favorites, addedThisSession, showingNewOnly, onToggleNewOnly }: StatsBarProps) {
   const cards = [
-    { label: 'Total pacientes', value: total, icon: '👥', color: '#4c6f87', clickable: false },
+    { label: 'Total', value: total, icon: '👥', color: '#4c6f87', clickable: false },
     { label: 'Favoritos', value: favorites, icon: '⭐', color: '#f59e0b', clickable: false },
-    { label: 'Agregados hoy', value: addedThisSession, icon: '✚', color: '#6aa6aa', clickable: true },
+    { label: 'Agregados', value: addedThisSession, icon: '✚', color: '#6aa6aa', clickable: true },
   ]
 
   return (
-    <div className="grid grid-cols-3 gap-4 mb-6">
+    <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
       {cards.map(card => (
         <StatCard
           key={card.label}

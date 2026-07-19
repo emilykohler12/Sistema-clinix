@@ -34,12 +34,32 @@ export function PatientModal({ mode, patient, onSave, onClose }: PatientModalPro
 
   function validate(): boolean {
     const newErrors: FormErrors = {}
-    if (!name.trim() || name.trim().length < 1) newErrors.name = 'El nombre es requerido (mínimo 1 caracter)'
-    if (!description.trim() || description.trim().length < 1) newErrors.description = 'La descripción es requerida (mínimo 1 caracter)'
+    if (!name.trim() || name.trim().length < 1) newErrors.name = 'El nombre es requerido'
+    if (!description.trim() || description.trim().length < 1) newErrors.description = 'La descripción es requerida'
     if (website && !website.match(/^https?:\/\/.+/)) newErrors.website = 'La URL debe comenzar con http:// o https://'
-    if (!createdAt) newErrors.createdAt = 'La fecha es requerida'
+    if (!createdAt) {
+      newErrors.createdAt = 'La fecha es requerida'
+    } else {
+      // Validar que el año tenga exactamente 4 dígitos
+      const year = new Date(createdAt).getFullYear()
+      if (year < 1900 || year > 2100) newErrors.createdAt = 'El año debe estar entre 1900 y 2100'
+    }
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
+  }
+
+  function handleDateChange(value: string) {
+    // El input type="date" devuelve YYYY-MM-DD
+    // Si el año tiene más de 4 dígitos, lo truncamos
+    if (value) {
+      const parts = value.split('-')
+      if (parts[0] && parts[0].length > 4) {
+        parts[0] = parts[0].slice(0, 4)
+        value = parts.join('-')
+      }
+    }
+    setCreatedAt(value)
+    setErrors(prev => ({ ...prev, createdAt: undefined }))
   }
 
   function handleSave() {
@@ -62,10 +82,7 @@ export function PatientModal({ mode, patient, onSave, onClose }: PatientModalPro
       className="fixed inset-0 flex items-center justify-center z-50 p-4 overlay"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="rounded-2xl w-full max-w-md flex flex-col card"
-        style={{ maxHeight: '90vh' }}
-      >
-        {/* Header fijo */}
+      <div className="rounded-2xl w-full max-w-md flex flex-col card" style={{ maxHeight: '90vh' }}>
         <div className="flex items-center justify-between p-6 pb-0 flex-shrink-0">
           <h2 className="text-lg font-medium text-primary">
             {mode === 'add' ? 'Agregar paciente' : 'Editar paciente'}
@@ -73,7 +90,6 @@ export function PatientModal({ mode, patient, onSave, onClose }: PatientModalPro
           <button onClick={onClose} className="text-xl hover:opacity-70 text-muted">×</button>
         </div>
 
-        {/* Contenido scrolleable */}
         <div className="flex flex-col gap-3 p-6 overflow-y-auto">
           <div>
             <label className="text-sm mb-1 block text-secondary">Nombre *</label>
@@ -105,7 +121,9 @@ export function PatientModal({ mode, patient, onSave, onClose }: PatientModalPro
             <input
               type="date"
               value={createdAt}
-              onChange={e => { setCreatedAt(e.target.value); setErrors(prev => ({ ...prev, createdAt: undefined })) }}
+              onChange={e => handleDateChange(e.target.value)}
+              max="2100-12-31"
+              min="1900-01-01"
               className={inputClass}
             />
             {errors.createdAt && <p className="text-xs mt-1 text-error">{errors.createdAt}</p>}
@@ -135,7 +153,6 @@ export function PatientModal({ mode, patient, onSave, onClose }: PatientModalPro
           </div>
         </div>
 
-        {/* Footer fijo */}
         <div className="flex justify-end gap-3 p-6 pt-2 flex-shrink-0 card-divider-top">
           <button onClick={onClose} className="px-4 py-2 text-sm transition-colors text-secondary">Cancelar</button>
           <button

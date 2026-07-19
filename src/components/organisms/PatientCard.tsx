@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom'
 import { Avatar } from '../atoms/Avatar'
 import type { Patient } from '../../types'
 
@@ -10,17 +9,17 @@ interface PatientCardProps {
   onToggleFavorite: (id: string) => void
   onEdit: (patient: Patient) => void
   onDelete: (patient: Patient) => void
+  onViewDetail: (patient: Patient) => void
   viewMode?: 'grid' | 'list'
 }
 
-export function PatientCard({ patient, isFavorite, isNew = false, isRemoving = false, onToggleFavorite, onEdit, onDelete, viewMode = 'grid' }: PatientCardProps) {
-  const navigate = useNavigate()
+export function PatientCard({ patient, isFavorite, isNew = false, isRemoving = false, onToggleFavorite, onEdit, onDelete, onViewDetail, viewMode = 'grid' }: PatientCardProps) {
 
   if (viewMode === 'list') {
     return (
       <div className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all hover:shadow-md card ${isRemoving ? 'animate-fadeOut' : 'animate-fadeIn'}`}>
         <Avatar avatar={patient.avatar} name={patient.name} id={patient.id} size="sm" />
-        <div className="flex-1 min-w-0 cursor-pointer" onClick={() => navigate(`/patient/${patient.id}`)}>
+        <div className="flex-1 min-w-0 cursor-pointer" onClick={() => onViewDetail(patient)}>
           <p className="font-semibold text-sm truncate font-display text-primary">{patient.name}</p>
           <p className="text-xs truncate text-muted">{patient.description}</p>
         </div>
@@ -41,12 +40,12 @@ export function PatientCard({ patient, isFavorite, isNew = false, isRemoving = f
       <div className="h-1.5 card-accent-bar" />
       <div className="p-4">
         <div className="flex items-start gap-3 mb-3">
-          <div className="cursor-pointer flex-shrink-0" onClick={() => navigate(`/patient/${patient.id}`)}>
+          <div className="cursor-pointer flex-shrink-0" onClick={() => onViewDetail(patient)}>
             <Avatar avatar={patient.avatar} name={patient.name} id={patient.id} size="md" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0 cursor-pointer" onClick={() => navigate(`/patient/${patient.id}`)}>
+              <div className="min-w-0 cursor-pointer" onClick={() => onViewDetail(patient)}>
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="font-bold truncate font-display text-primary">{patient.name}</p>
                   {isNew && (
@@ -72,7 +71,7 @@ export function PatientCard({ patient, isFavorite, isNew = false, isRemoving = f
 
         <div className="flex items-center justify-between pt-3 card-divider-top">
           <button
-            onClick={() => navigate(`/patient/${patient.id}`)}
+            onClick={() => onViewDetail(patient)}
             className="text-xs font-semibold flex items-center gap-1 transition-all hover:gap-2 link-accent"
           >
             Ver detalle →

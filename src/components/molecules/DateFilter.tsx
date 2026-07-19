@@ -1,13 +1,19 @@
+import { useClinicStore } from '../../store/useClinicStore'
+
 interface DateFilterProps {
   dateFilter: string
-  onDateFilterChange: (year: string) => void
-  patients: { createdAt: string }[]
+  onDateFilterChange: (year: string) => Promise<void>
 }
 
-export function DateFilter({ dateFilter, onDateFilterChange, patients }: DateFilterProps) {
-  const years = ['all', ...Array.from(
-    new Set(patients.map(p => new Date(p.createdAt).getFullYear().toString()))
-  ).sort()]
+export function DateFilter({ dateFilter, onDateFilterChange }: DateFilterProps) {
+  const { apiPatients, localPatients } = useClinicStore()
+
+  const allForYears = [...apiPatients, ...localPatients]
+  const dynamicYears = Array.from(
+    new Set(allForYears.map(p => new Date(p.createdAt).getFullYear().toString()))
+  ).sort()
+
+  const years = ['all', ...dynamicYears]
 
   return (
     <div className="flex gap-2 mb-6 flex-wrap">
