@@ -13,6 +13,11 @@ export function PatientDetailModal({ patient, onClose }: PatientDetailModalProps
   const { isFavorite, toggleFavorite, openEdit } = useClinicStore()
 
   useEffect(() => {
+    document.body.classList.add('modal-open')
+    return () => document.body.classList.remove('modal-open')
+  }, [])
+
+  useEffect(() => {
     const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', handleKey)
     return () => document.removeEventListener('keydown', handleKey)

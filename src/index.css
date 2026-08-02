@@ -230,3 +230,7 @@
 .btn-save-gradient {
   background: linear-gradient(135deg, #005B94, #3AAFA9);
 }
+
+body.modal-open {
+  overflow: hidden;
+}

@@ -27,6 +27,11 @@ export function PatientModal({ mode, patient, onSave, onClose }: PatientModalPro
   const [errors, setErrors] = useState<FormErrors>({})
 
   useEffect(() => {
+    document.body.classList.add('modal-open')
+    return () => document.body.classList.remove('modal-open')
+  }, [])
+
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
@@ -40,7 +45,6 @@ export function PatientModal({ mode, patient, onSave, onClose }: PatientModalPro
     if (!createdAt) {
       newErrors.createdAt = 'La fecha es requerida'
     } else {
-      // Validar que el año tenga exactamente 4 dígitos
       const year = new Date(createdAt).getFullYear()
       if (year < 1900 || year > 2100) newErrors.createdAt = 'El año debe estar entre 1900 y 2100'
     }
@@ -49,8 +53,6 @@ export function PatientModal({ mode, patient, onSave, onClose }: PatientModalPro
   }
 
   function handleDateChange(value: string) {
-    // El input type="date" devuelve YYYY-MM-DD
-    // Si el año tiene más de 4 dígitos, lo truncamos
     if (value) {
       const parts = value.split('-')
       if (parts[0] && parts[0].length > 4) {
@@ -70,7 +72,7 @@ export function PatientModal({ mode, patient, onSave, onClose }: PatientModalPro
       description: description.trim(),
       website: website.trim(),
       avatar: avatar.trim(),
-      createdAt: new Date(createdAt).toISOString(),
+      createdAt: new Date(createdAt + 'T12:00:00').toISOString(),
     }
     onSave(saved)
   }
