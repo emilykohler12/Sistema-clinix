@@ -80,7 +80,7 @@ export const useClinicStore = create<ClinicStore>()(
       dateFilter: 'all',
 
       setDateFilter: async (year) => {
-        const { localPatients, deletedIds, patients, patientsSnapshot } = get()
+        const { deletedIds, patients, patientsSnapshot } = get()
 
         if (year === 'all') {
           // Guardar snapshot si no hay uno ya (misma lógica que búsqueda)
