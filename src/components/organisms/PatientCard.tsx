@@ -77,9 +77,6 @@ export function PatientCard({
               <div className="min-w-0 cursor-pointer" onClick={() => onViewDetail(patient)}>
                 <p className="font-bold truncate text-primary">{patient.name}</p>
                 <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-                  <span className="text-xs px-2 py-0.5 rounded-full inline-block badge-id">
-                    DNI {patient.documentId}
-                  </span>
                   <span className={`text-xs px-2 py-0.5 rounded-full inline-block ${statusClass[patient.status]}`}>
                     {statusLabel[patient.status]}
                   </span>
@@ -106,7 +103,7 @@ export function PatientCard({
             onClick={() => onViewDetail(patient)}
             className="text-xs font-semibold flex items-center gap-1 transition-all hover:gap-2 link-accent"
           >
-            Ver detalle →
+            Ver detalle (DNI {patient.documentId}) →
           </button>
           <div className="flex gap-2">
             {archived ? (

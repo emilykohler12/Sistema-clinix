@@ -188,6 +188,12 @@
   background-color: var(--delete-bg);
   color: var(--danger);
 }
+.icon-btn-delete-solid {
+  background-color: var(--danger);
+}
+.icon-btn-delete-solid:hover {
+  opacity: 0.9;
+}
 
 /* Favorito */
 .star-active { color: #f59e0b; }

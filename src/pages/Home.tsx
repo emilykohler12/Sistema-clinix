@@ -93,8 +93,9 @@ export function Home() {
     return a.name.trim().localeCompare(b.name.trim())
   })
 
-  const favoritePatients = sortedPatients.filter(p => isFavorite(p.id))
-  const allPatients = sortedPatients.filter(p => !isFavorite(p.id))
+  const displayedPatients = showingFavoritesOnly
+    ? sortedPatients.filter(p => isFavorite(p.id))
+    : sortedPatients
 
   function handleDelete() {
     if (!patientToDelete) return
@@ -141,7 +142,34 @@ export function Home() {
     : 'flex flex-col gap-2'
 
   const hasActiveFilters = Object.values(filters).some(Boolean)
+  const hasDateFilter = dateFilter !== 'all'
   const showClearButton = isFiltered || isSearchMode || hasActiveFilters
+
+  let sectionTitle: string
+  if (isSearchMode) {
+    sectionTitle = `${totalCount} resultado${totalCount !== 1 ? 's' : ''} para "${debouncedSearch}"`
+  } else if (hasDateFilter && !hasActiveFilters) {
+    sectionTitle = `Pacientes del año ${dateFilter}`
+  } else if (hasDateFilter || hasActiveFilters) {
+    sectionTitle = 'Pacientes filtrados'
+  } else if (showingFavoritesOnly) {
+    sectionTitle = 'Pacientes favoritos'
+  } else {
+    sectionTitle = 'Todos los pacientes'
+  }
+
+  let emptyMessage: string
+  if (isSearchMode) {
+    emptyMessage = `No se encontraron pacientes con "${debouncedSearch}"`
+  } else if (hasDateFilter && !hasActiveFilters) {
+    emptyMessage = `No hay pacientes registrados en ${dateFilter}`
+  } else if (hasDateFilter || hasActiveFilters) {
+    emptyMessage = 'No se encontraron pacientes con esos filtros'
+  } else if (showingFavoritesOnly) {
+    emptyMessage = 'No tenés pacientes favoritos'
+  } else {
+    emptyMessage = 'No se encontraron pacientes'
+  }
 
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: 'var(--bg-page)' }}>
@@ -191,107 +219,63 @@ export function Home() {
 
           <FilterBar filters={filters} onChange={setFilters} doctors={doctors} />
 
-          {favoritePatients.length > 0 && (
-            <section className="mb-8">
-              <h3 className="font-bold mb-3 flex items-center gap-2 star-active">
-                Favoritos
-                <span className="text-xs px-2 py-0.5 rounded-full font-sans font-medium" style={{ backgroundColor: 'var(--status-treatment-bg)', color: 'var(--status-treatment-text)' }}>
-                  {favoritePatients.length}
-                </span>
-              </h3>
-              <div className={gridClass}>
-                {favoritePatients.map(p => (
-                  <PatientCard
-                    key={p.id}
-                    patient={p}
-                    isFavorite={true}
-                    isRemoving={removingId === p.id}
-                    onToggleFavorite={toggleFavorite}
-                    onEdit={openEdit}
-                    onDelete={setPatientToDelete}
-                    onViewDetail={setSelectedPatient}
-                    viewMode={viewMode}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
+          <section>
+            <h3 className="font-bold mb-3 flex items-center gap-2 text-primary">
+              {sectionTitle}
+              <span className="badge-id text-xs px-2 py-0.5 rounded-full font-sans font-medium">
+                {displayedPatients.length}
+              </span>
+              {showClearButton && (
+                <button
+                  onClick={handleClearAll}
+                  className="icon-btn-delete text-xs px-2 py-0.5 rounded-full ml-1 font-sans"
+                >
+                  × Limpiar
+                </button>
+              )}
+            </h3>
 
-          {!showingFavoritesOnly && (
-            <section>
-              <h3 className="font-bold mb-3 flex items-center gap-2 text-primary">
-                {isSearchMode
-                  ? `${totalCount} resultado${totalCount !== 1 ? 's' : ''} para "${debouncedSearch}"`
-                  : isFiltered
-                  ? `Pacientes de ${dateFilter}`
-                  : 'Todos los pacientes'}
-                <span className="badge-id text-xs px-2 py-0.5 rounded-full font-sans font-medium">
-                  {allPatients.length}
-                </span>
+            {error && (
+              <div className="text-center py-12">
+                <p className="text-error mb-3">{error}</p>
+                <button
+                  onClick={handleRetry}
+                  className="px-4 py-2 text-sm text-white rounded-lg btn-save-gradient"
+                >
+                  Reintentar
+                </button>
+              </div>
+            )}
+
+            {!error && displayedPatients.length === 0 && !loading && (
+              <div className="text-center py-16 flex flex-col items-center gap-3">
+                <p className="font-bold text-lg text-primary">{emptyMessage}</p>
                 {showClearButton && (
-                  <button
-                    onClick={handleClearAll}
-                    className="icon-btn-delete text-xs px-2 py-0.5 rounded-full ml-1 font-sans"
-                  >
-                    × Limpiar
+                  <button onClick={handleClearAll} className="badge-id text-sm px-4 py-2 rounded-lg">
+                    Ver todos los pacientes
                   </button>
                 )}
-              </h3>
-
-              {error && (
-                <div className="text-center py-12">
-                  <p className="text-error mb-3">{error}</p>
-                  <button
-                    onClick={handleRetry}
-                    className="px-4 py-2 text-sm text-white rounded-lg btn-save-gradient"
-                  >
-                    Reintentar
-                  </button>
-                </div>
-              )}
-
-              {!error && allPatients.length === 0 && !loading && (
-                <div className="text-center py-16 flex flex-col items-center gap-3">
-                  <p className="font-bold text-lg text-primary">
-                    {isSearchMode
-                      ? `No se encontraron pacientes con "${debouncedSearch}"`
-                      : isFiltered
-                      ? `No hay pacientes de ${dateFilter}`
-                      : 'No se encontraron pacientes'}
-                  </p>
-                  {showClearButton && (
-                    <button onClick={handleClearAll} className="badge-id text-sm px-4 py-2 rounded-lg">
-                      Ver todos los pacientes
-                    </button>
-                  )}
-                </div>
-              )}
-
-              <div className={gridClass}>
-                {allPatients.map(p => (
-                  <PatientCard
-                    key={p.id}
-                    patient={p}
-                    isFavorite={false}
-                    isRemoving={removingId === p.id}
-                    onToggleFavorite={toggleFavorite}
-                    onEdit={openEdit}
-                    onDelete={setPatientToDelete}
-                    onViewDetail={setSelectedPatient}
-                    viewMode={viewMode}
-                  />
-                ))}
-                {loading && Array.from({ length: 6 }).map((_, i) => <PatientCardSkeleton key={i} />)}
               </div>
-              <div ref={bottomRef} className="h-4" />
-            </section>
-          )}
+            )}
 
-          {showingFavoritesOnly && favoritePatients.length === 0 && (
-            <div className="text-center py-16 flex flex-col items-center gap-3">
-              <p className="font-bold text-lg text-primary">No tenés pacientes favoritos</p>
+            <div className={`${gridClass} transition-opacity duration-300 ${loading ? 'opacity-40' : 'opacity-100'}`}>
+              {displayedPatients.map(p => (
+                <PatientCard
+                  key={p.id}
+                  patient={p}
+                  isFavorite={isFavorite(p.id)}
+                  isRemoving={removingId === p.id}
+                  onToggleFavorite={toggleFavorite}
+                  onEdit={openEdit}
+                  onDelete={setPatientToDelete}
+                  onViewDetail={setSelectedPatient}
+                  viewMode={viewMode}
+                />
+              ))}
+              {loading && Array.from({ length: 6 }).map((_, i) => <PatientCardSkeleton key={i} />)}
             </div>
-          )}
+            <div ref={bottomRef} className="h-4" />
+          </section>
         </div>
       </div>
 

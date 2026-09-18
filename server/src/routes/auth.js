@@ -57,6 +57,9 @@ authRouter.post('/login', async (req, res) => {
   const valid = await bcrypt.compare(password, user.passwordHash)
   if (!valid) return res.status(401).json({ message: 'Credenciales inválidas' })
 
+  if (user.archived) return res.status(403).json({ message: 'Esta cuenta fue eliminada' })
+  if (!user.active) return res.status(403).json({ message: 'Esta cuenta está desactivada. Contactá al administrador.' })
+
   const token = jwt.sign(
     { sub: user._id.toString(), name: user.name, role: user.role },
     process.env.JWT_SECRET,

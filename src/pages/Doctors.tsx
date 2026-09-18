@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import { Sidebar } from '../components/organisms/Sidebar'
 import { Avatar } from '../components/atoms/Avatar'
 import { ImageUpload } from '../components/molecules/ImageUpload'
+import { ConfirmToast } from '../components/molecules/ConfirmToast'
 import { useClinicStore } from '../store/useClinicStore'
+import type { Doctor } from '../types'
 
 export function Doctors() {
-  const { doctors, doctorsLoading, loadDoctors, addDoctor, removeDoctor, authUser, addToast, sidebarOpen } = useClinicStore()
+  const { doctors, doctorsLoading, loadDoctors, addDoctor, archiveDoctor, toggleDoctorActive, authUser, addToast, sidebarOpen } = useClinicStore()
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('clinix_theme') === 'dark')
   const [showForm, setShowForm] = useState(false)
   const [name, setName] = useState('')
@@ -15,6 +17,7 @@ export function Doctors() {
   const [avatar, setAvatar] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [doctorToDelete, setDoctorToDelete] = useState<Doctor | null>(null)
 
   const isAdmin = authUser?.role === 'admin'
 
@@ -51,13 +54,24 @@ export function Doctors() {
     }
   }
 
-  async function handleDelete(id: string, doctorName: string) {
-    if (!window.confirm(`¿Eliminar la cuenta de ${doctorName}?`)) return
+  async function handleConfirmDelete() {
+    if (!doctorToDelete) return
+    const id = doctorToDelete.id
+    setDoctorToDelete(null)
     try {
-      await removeDoctor(id)
-      addToast('Médico eliminado', 'success')
+      await archiveDoctor(id)
+      addToast('Médico movido a archivados', 'success')
     } catch {
       addToast('No se pudo eliminar el médico', 'error')
+    }
+  }
+
+  async function handleToggleActive(doctor: Doctor) {
+    try {
+      await toggleDoctorActive(doctor.id, !doctor.active)
+      addToast(doctor.active ? 'Médico desactivado' : 'Médico activado', 'success')
+    } catch {
+      addToast('No se pudo cambiar el estado del médico', 'error')
     }
   }
 
@@ -113,7 +127,7 @@ export function Doctors() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {doctors.map(d => (
-              <div key={d.id} className="card rounded-2xl p-4 flex items-center gap-3">
+              <div key={d.id} className={`card rounded-2xl p-4 flex items-center gap-3 ${!d.active ? 'opacity-60' : ''}`}>
                 <Avatar avatar={d.avatar ?? ''} name={d.name} id={d.id} size="md" />
                 <div className="flex-1 min-w-0">
                   <p className="font-bold truncate text-primary">{d.name}</p>
@@ -123,15 +137,26 @@ export function Doctors() {
                     <span className="text-xs px-2 py-0.5 rounded-full badge-status-discharged">
                       {d.role === 'admin' ? 'Administrador' : 'Médico'}
                     </span>
+                    {!d.active && (
+                      <span className="text-xs px-2 py-0.5 rounded-full badge-status-admitted">Desactivado</span>
+                    )}
                   </div>
                 </div>
                 {isAdmin && d.id !== authUser?.id && (
-                  <button
-                    onClick={() => handleDelete(d.id, d.name)}
-                    className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all icon-btn-delete flex-shrink-0"
-                  >
-                    Eliminar
-                  </button>
+                  <div className="flex flex-col gap-1.5 flex-shrink-0">
+                    <button
+                      onClick={() => handleToggleActive(d)}
+                      className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all icon-btn-edit"
+                    >
+                      {d.active ? 'Desactivar' : 'Activar'}
+                    </button>
+                    <button
+                      onClick={() => setDoctorToDelete(d)}
+                      className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all icon-btn-delete"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
                 )}
               </div>
             ))}
@@ -139,6 +164,14 @@ export function Doctors() {
           </div>
         </div>
       </div>
+
+      {doctorToDelete && (
+        <ConfirmToast
+          message={`¿Eliminar la cuenta de ${doctorToDelete.name}? Se puede restaurar desde Archivados.`}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setDoctorToDelete(null)}
+        />
+      )}
     </div>
   )
 }

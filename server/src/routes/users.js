@@ -8,8 +8,10 @@ export const usersRouter = Router()
 usersRouter.use(requireAuth)
 
 // Lista de médicos/administradores — visible para cualquier usuario autenticado
-usersRouter.get('/', async (_req, res) => {
-  const users = await User.find().sort({ name: 1 })
+// ?archived=true devuelve los médicos archivados en vez de los activos
+usersRouter.get('/', async (req, res) => {
+  const filter = req.query.archived === 'true' ? { archived: true } : { archived: { $ne: true } }
+  const users = await User.find(filter).sort({ name: 1 })
   res.json(users)
 })
 
@@ -51,11 +53,32 @@ usersRouter.put('/:id', async (req, res) => {
   res.json(user)
 })
 
+// Activa o desactiva el login de un médico sin eliminarlo del listado
+usersRouter.patch('/:id/active', requireAdmin, async (req, res) => {
+  if (req.params.id === req.user.sub) {
+    return res.status(400).json({ message: 'No podés desactivar tu propia cuenta' })
+  }
+  const user = await User.findByIdAndUpdate(
+    req.params.id,
+    { active: !!req.body.active },
+    { new: true }
+  )
+  if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
+  res.json(user)
+})
+
+// Archiva la cuenta (soft delete) en vez de borrarla — se puede restaurar
 usersRouter.delete('/:id', requireAdmin, async (req, res) => {
   if (req.params.id === req.user.sub) {
     return res.status(400).json({ message: 'No podés eliminar tu propia cuenta' })
   }
-  const user = await User.findByIdAndDelete(req.params.id)
+  const user = await User.findByIdAndUpdate(req.params.id, { archived: true }, { new: true })
   if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
-  res.status(204).send()
+  res.json(user)
+})
+
+usersRouter.post('/:id/restore', requireAdmin, async (req, res) => {
+  const user = await User.findByIdAndUpdate(req.params.id, { archived: false }, { new: true })
+  if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
+  res.json(user)
 })

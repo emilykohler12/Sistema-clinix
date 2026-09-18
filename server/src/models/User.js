@@ -8,6 +8,8 @@ const userSchema = new mongoose.Schema(
     role: { type: String, enum: ['admin', 'medico'], default: 'medico' },
     specialty: { type: String, trim: true, default: '' },
     avatar: { type: String, trim: true, default: '' },
+    active: { type: Boolean, default: true },
+    archived: { type: Boolean, default: false },
   },
   {
     timestamps: true,

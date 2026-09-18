@@ -62,6 +62,8 @@ export interface Doctor {
   role: UserRole
   specialty?: string
   avatar?: string
+  active: boolean
+  archived?: boolean
   createdAt: string
 }
 

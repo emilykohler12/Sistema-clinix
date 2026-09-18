@@ -25,7 +25,6 @@ const bloodTypes: BloodType[] = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-
 
 export function FilterBar({ filters, onChange, doctors }: FilterBarProps) {
   const selectClass = "card px-3 py-2 rounded-xl text-sm focus:outline-none text-primary"
-  const hasActiveFilters = Object.values(filters).some(Boolean)
 
   return (
     <div className="flex items-center gap-2 flex-wrap mb-6">
@@ -64,15 +63,6 @@ export function FilterBar({ filters, onChange, doctors }: FilterBarProps) {
         <option value="">Grupo sanguíneo (todos)</option>
         {bloodTypes.map(bt => <option key={bt} value={bt}>{bt}</option>)}
       </select>
-
-      {hasActiveFilters && (
-        <button
-          onClick={() => onChange({})}
-          className="icon-btn-delete text-xs px-3 py-2 rounded-xl font-medium"
-        >
-          × Limpiar filtros
-        </button>
-      )}
     </div>
   )
 }

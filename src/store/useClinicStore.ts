@@ -11,7 +11,7 @@ import {
   deletePatientPermanently,
 } from '../services/patientService'
 import { login as loginApi, register as registerApi, logout as logoutApi, getCurrentUser } from '../services/authService'
-import { getUsers, createUser, deleteUser, type NewDoctorInput } from '../services/userService'
+import { getUsers, createUser, setUserActive, archiveUser, restoreUser, type NewDoctorInput } from '../services/userService'
 
 const LIMIT = 10
 
@@ -47,7 +47,13 @@ interface ClinicStore {
   doctorsLoading: boolean
   loadDoctors: () => Promise<void>
   addDoctor: (input: NewDoctorInput) => Promise<void>
-  removeDoctor: (id: string) => Promise<void>
+  toggleDoctorActive: (id: string, active: boolean) => Promise<void>
+  archiveDoctor: (id: string) => Promise<void>
+
+  archivedDoctors: Doctor[]
+  archivedDoctorsLoading: boolean
+  loadArchivedDoctors: () => Promise<void>
+  restoreDoctor: (id: string) => Promise<void>
 
   favorites: string[]
   toggleFavorite: (id: string) => void
@@ -254,9 +260,35 @@ export const useClinicStore = create<ClinicStore>()(
         set(state => ({ doctors: [...state.doctors, doctor].sort((a, b) => a.name.localeCompare(b.name)) }))
       },
 
-      removeDoctor: async (id) => {
-        await deleteUser(id)
+      toggleDoctorActive: async (id, active) => {
+        const updated = await setUserActive(id, active)
+        set(state => ({ doctors: state.doctors.map(d => d.id === id ? updated : d) }))
+      },
+
+      archiveDoctor: async (id) => {
+        await archiveUser(id)
         set(state => ({ doctors: state.doctors.filter(d => d.id !== id) }))
+      },
+
+      archivedDoctors: [],
+      archivedDoctorsLoading: false,
+
+      loadArchivedDoctors: async () => {
+        set({ archivedDoctorsLoading: true })
+        try {
+          const archivedDoctors = await getUsers(true)
+          set({ archivedDoctors })
+        } catch {
+          get().addToast('No se pudieron cargar los médicos archivados', 'error')
+        } finally {
+          set({ archivedDoctorsLoading: false })
+        }
+      },
+
+      restoreDoctor: async (id) => {
+        await restoreUser(id)
+        set(state => ({ archivedDoctors: state.archivedDoctors.filter(d => d.id !== id) }))
+        get().addToast('Médico restaurado', 'success')
       },
 
       favorites: [],

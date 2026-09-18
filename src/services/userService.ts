@@ -1,8 +1,8 @@
 import type { Doctor, UserRole } from '../types'
 import { apiFetch } from './httpClient'
 
-export async function getUsers(): Promise<Doctor[]> {
-  return apiFetch<Doctor[]>('/users')
+export async function getUsers(archived = false): Promise<Doctor[]> {
+  return apiFetch<Doctor[]>(`/users${archived ? '?archived=true' : ''}`)
 }
 
 export interface NewDoctorInput {
@@ -20,6 +20,17 @@ export async function createUser(input: NewDoctorInput): Promise<Doctor> {
   })
 }
 
-export async function deleteUser(id: string): Promise<void> {
-  await apiFetch<void>(`/users/${id}`, { method: 'DELETE' })
+export async function setUserActive(id: string, active: boolean): Promise<Doctor> {
+  return apiFetch<Doctor>(`/users/${id}/active`, {
+    method: 'PATCH',
+    body: JSON.stringify({ active }),
+  })
+}
+
+export async function archiveUser(id: string): Promise<Doctor> {
+  return apiFetch<Doctor>(`/users/${id}`, { method: 'DELETE' })
+}
+
+export async function restoreUser(id: string): Promise<Doctor> {
+  return apiFetch<Doctor>(`/users/${id}/restore`, { method: 'POST' })
 }
