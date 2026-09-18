@@ -27,3 +27,6 @@ dist-ssr
 storybook-static
 
 .env
+
+# Archivos subidos por usuarios (backend)
+server/uploads/

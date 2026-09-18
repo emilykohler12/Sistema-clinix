@@ -7,8 +7,18 @@ const mockPatient: Patient = {
   id: '43',
   name: 'Hazel Nicolas',
   avatar: 'https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/440.jpg',
-  description: 'Paciente con historial de hipertensión arterial. Requiere seguimiento mensual y control de presión.',
-  website: 'https://ejemplo.com',
+  documentId: '30123456',
+  birthDate: '1985-06-12',
+  gender: 'femenino',
+  phone: '+54 11 1234-5678',
+  email: 'hazel.nicolas@mail.com',
+  address: 'Av. Siempre Viva 742',
+  bloodType: 'O+',
+  allergies: '',
+  diagnosis: 'Paciente con historial de hipertensión arterial. Requiere seguimiento mensual y control de presión.',
+  assignedDoctor: 'Dra. Lucía Fernández',
+  status: 'en_tratamiento',
+  notes: '',
   createdAt: '2023-03-06T10:24:04.110Z',
 }
 
@@ -20,7 +30,6 @@ const meta = {
   args: {
     patient: mockPatient,
     isFavorite: false,
-    isNew: false,
     isRemoving: false,
     onToggleFavorite: fn() as (id: string) => void,
     onEdit: fn() as (patient: Patient) => void,
@@ -37,14 +46,6 @@ export const Default: Story = {}
 
 export const Favorito: Story = {
   args: { isFavorite: true },
-}
-
-export const Nuevo: Story = {
-  args: { isNew: true },
-}
-
-export const NuevoYFavorito: Story = {
-  args: { isFavorite: true, isNew: true },
 }
 
 export const SinAvatar: Story = {

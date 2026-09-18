@@ -14,14 +14,13 @@ export function SearchBar({ search, onSearchChange, sortOption, onSortChange, vi
   return (
     <div className="flex items-center gap-3 flex-wrap">
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted">🔍</span>
         <input
           type="text"
           value={search}
           onChange={e => onSearchChange(e.target.value)}
-          placeholder="Buscar paciente..."
-          className="navbar-input pl-9 pr-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 text-primary"
-          style={{ minWidth: '200px' }}
+          placeholder="Buscar por nombre, DNI o diagnóstico..."
+          className="navbar-input pl-4 pr-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 text-primary"
+          style={{ minWidth: '220px' }}
         />
         {search && (
           <button

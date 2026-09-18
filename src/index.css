@@ -10,39 +10,88 @@
     margin: 0;
   }
 
+  button:not(:disabled),
+  a,
+  [role="button"],
+  select,
+  input[type="checkbox"],
+  input[type="radio"],
+  .cursor-pointer {
+    cursor: pointer;
+  }
+
   :root {
-    --bg-page: #b3d4ff;
-    --bg-sidebar: #4c6f87;
+    /* Fondo y superficies */
+    --bg-page: #f8fafc;
+    --bg-sidebar: #111827;
     --bg-card: #ffffff;
-    --bg-card-border: #d4e8ff;
-    --bg-card-divider: #e8f4ff;
-    --text-primary: #1a2f3a;
-    --text-secondary: #4c6f87;
-    --text-muted: #7a9db5;
+    --bg-card-border: #e2e8f0;
+    --bg-card-divider: #f1f5f9;
+
+    /* Texto */
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
     --text-sidebar: #ffffff;
-    --accent: #4c6f87;
-    --accent-2: #6aa6aa;
-    --id-bg: #e0f0ff;
+
+    /* Marca */
+    --accent: #2563eb;
+    --accent-2: #1d4ed8;
+    --danger: #dc2626;
+
+    /* Detalles */
+    --id-bg: #eff6ff;
     --delete-bg: #fef2f2;
-    --star-empty: #c8dff0;
+    --star-empty: #cbd5e1;
+
+    /* Estados de paciente */
+    --status-active-bg: #ecfdf5;
+    --status-active-text: #047857;
+    --status-treatment-bg: #fffbeb;
+    --status-treatment-text: #b45309;
+    --status-waiting-bg: #eff6ff;
+    --status-waiting-text: #2563eb;
+    --status-admitted-bg: #fef2f2;
+    --status-admitted-text: #b91c1c;
+    --status-referred-bg: #f5f3ff;
+    --status-referred-text: #7c3aed;
+    --status-discharged-bg: #f1f5f9;
+    --status-discharged-text: #475569;
   }
 
   html.dark {
-  --bg-page: #0f1f2a;
-  --bg-sidebar: #0a1520;
-  --bg-card: #204266;
-  --bg-card-border: rgba(255, 255, 255, 0.219);
-  --bg-card-divider: rgba(255, 255, 255, 0.192);
-  --text-primary: #f0f8ff;
-  --text-secondary: #a8d4d8;
-  --text-muted: #7adae0;
-  --text-sidebar: #ffffff;
-  --accent: #74e2e7;
-  --accent-2: #d7ebec;
-  --id-bg: rgba(105, 216, 224, 0.336);
-  --delete-bg: rgba(255,107,107,0.2);
-  --star-empty: rgba(255, 255, 255, 0.281);
-}
+    --bg-page: #0b1220;
+    --bg-sidebar: #05080f;
+    --bg-card: #131b2c;
+    --bg-card-border: rgba(255, 255, 255, 0.1);
+    --bg-card-divider: rgba(255, 255, 255, 0.07);
+
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --text-sidebar: #ffffff;
+
+    --accent: #3b82f6;
+    --accent-2: #60a5fa;
+    --danger: #f87171;
+
+    --id-bg: rgba(59, 130, 246, 0.15);
+    --delete-bg: rgba(248, 113, 113, 0.15);
+    --star-empty: rgba(255, 255, 255, 0.25);
+
+    --status-active-bg: rgba(16, 185, 129, 0.15);
+    --status-active-text: #34d399;
+    --status-treatment-bg: rgba(245, 158, 11, 0.15);
+    --status-treatment-text: #fbbf24;
+    --status-waiting-bg: rgba(59, 130, 246, 0.15);
+    --status-waiting-text: #60a5fa;
+    --status-admitted-bg: rgba(248, 113, 113, 0.15);
+    --status-admitted-text: #f87171;
+    --status-referred-bg: rgba(167, 139, 250, 0.15);
+    --status-referred-text: #a78bfa;
+    --status-discharged-bg: rgba(255, 255, 255, 0.08);
+    --status-discharged-text: #cbd5e1;
+  }
 }
 
 @keyframes fadeIn {
@@ -60,16 +109,14 @@
   to { transform: translateX(0); }
 }
 
-@keyframes progress-slide {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+@keyframes progress-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }
 
 .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
 .animate-fadeOut { animation: fadeOut 0.25s ease-in forwards; }
 .animate-slideIn { animation: slideIn 0.25s ease-out forwards; }
-
-.font-display { font-family: 'Playfair Display', serif; }
 
 /* =========================================================
    Clases de componentes (reemplazan estilos inline)
@@ -84,15 +131,19 @@
   border-top: 1px solid var(--bg-card-divider);
 }
 .card-accent-bar {
-  background: linear-gradient(90deg, #4c6f87, #6aa6aa);
+  background-color: var(--accent);
+}
+.info-tile {
+  background-color: var(--bg-page);
+  border: 1px solid var(--bg-card-border);
 }
 
 /* Texto */
 .text-primary { color: var(--text-primary); }
 .text-secondary { color: var(--text-secondary); }
 .text-muted { color: var(--text-muted); }
-.text-error { color: #FF6B6B; }
-.link-accent { color: var(--accent-2); }
+.text-error { color: var(--danger); }
+.link-accent { color: var(--accent); }
 
 /* Badges */
 .badge-id {
@@ -100,8 +151,32 @@
   color: var(--accent);
 }
 .badge-new {
-  background-color: #e6f7f6;
-  color: #6aa6aa;
+  background-color: var(--id-bg);
+  color: var(--accent);
+}
+.badge-status-active {
+  background-color: var(--status-active-bg);
+  color: var(--status-active-text);
+}
+.badge-status-treatment {
+  background-color: var(--status-treatment-bg);
+  color: var(--status-treatment-text);
+}
+.badge-status-waiting {
+  background-color: var(--status-waiting-bg);
+  color: var(--status-waiting-text);
+}
+.badge-status-admitted {
+  background-color: var(--status-admitted-bg);
+  color: var(--status-admitted-text);
+}
+.badge-status-referred {
+  background-color: var(--status-referred-bg);
+  color: var(--status-referred-text);
+}
+.badge-status-discharged {
+  background-color: var(--status-discharged-bg);
+  color: var(--status-discharged-text);
 }
 
 /* Botones de icono */
@@ -111,7 +186,7 @@
 }
 .icon-btn-delete {
   background-color: var(--delete-bg);
-  color: #FF6B6B;
+  color: var(--danger);
 }
 
 /* Favorito */
@@ -119,28 +194,22 @@
 .star-inactive { color: var(--star-empty); }
 
 /* Toast */
-.toast-success { background-color: #6aa6aa; }
-.toast-error { background-color: #FF6B6B; }
+.toast-success { background-color: var(--accent); }
+.toast-error { background-color: var(--danger); }
 
-/* StatsBar (usa --stat-color seteada inline por tarjeta, ver nota arriba) */
+/* StatsBar */
 .stat-card {
   background-color: var(--bg-card);
   border: 2px solid var(--bg-card-border);
 }
 .stat-card.active {
-  border-color: var(--stat-color);
-}
-.stat-card-clickable {
-  cursor: pointer;
-}
-.stat-icon {
-  background-color: var(--id-bg);
+  border-color: var(--accent);
 }
 .stat-value {
-  color: var(--stat-color);
+  color: var(--text-primary);
 }
-.stat-arrow {
-  color: var(--stat-color);
+.stat-card.active .stat-value {
+  color: var(--accent);
 }
 
 @keyframes shimmer {
@@ -165,7 +234,7 @@
 
 /* Overlay genérico (modales) */
 .overlay {
-  background-color: rgba(0,0,0,0.5);
+  background-color: rgba(15, 23, 42, 0.5);
 }
 
 /* Sidebar */
@@ -176,49 +245,29 @@
   border-color: rgba(255,255,255,0.1);
 }
 .sidebar-subtitle {
-  color: rgba(255,255,255,0.5);
-}
-.sidebar-nav-active {
-  background-color: rgba(255,255,255,0.15);
-}
-
-/* Navbar */
-.navbar-gradient {
-  background: linear-gradient(135deg, #005B94 0%, #3AAFA9 100%);
-}
-.navbar-icon-box {
-  background-color: rgba(255,255,255,0.2);
-}
-.navbar-subtitle {
   color: rgba(255,255,255,0.7);
 }
-.btn-add-patient {
-  background-color: #FF6B6B;
-  color: white;
+.sidebar-nav-active {
+  background-color: rgba(255,255,255,0.12);
 }
-.navbar-icon-btn {
-  background-color: rgba(255,255,255,0.15);
+
+/* Navbar (barra superior de la vista de detalle) */
+.navbar-gradient {
+  background-color: var(--accent);
 }
 .navbar-input {
   background-color: rgba(255,255,255,0.15);
   border: 1px solid rgba(255,255,255,0.2);
 }
-.navbar-search-icon {
-  color: rgba(255,255,255,0.5);
-}
-.navbar-select-option {
-  color: #2B2D42;
-}
 
 /* Progress bar */
 .progress-track {
-  background-color: rgba(0,91,148,0.2);
+  background-color: var(--id-bg);
 }
 .progress-bar-fill {
-  background: linear-gradient(90deg, #005B94, #3AAFA9, #005B94);
-  background-size: 200% 100%;
-  animation: progress-slide 1.5s linear infinite;
+  background-color: var(--accent);
   width: 60%;
+  animation: progress-pulse 1.2s ease-in-out infinite;
 }
 
 /* Modal (PatientModal) */
@@ -228,7 +277,10 @@
   color: var(--text-primary);
 }
 .btn-save-gradient {
-  background: linear-gradient(135deg, #005B94, #3AAFA9);
+  background-color: var(--accent);
+}
+.btn-save-gradient:hover {
+  background-color: var(--accent-2);
 }
 
 body.modal-open {

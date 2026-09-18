@@ -1,28 +1,52 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Patient, Toast, ToastType } from '../types'
-import { getPatients, getAllPatientsByYear } from '../services/patientService'
+import type { AuthUser, Doctor, Patient, PatientFilters, Toast, ToastType } from '../types'
+import {
+  getPatients,
+  getPatientById,
+  createPatient,
+  updatePatient as updatePatientApi,
+  archivePatient,
+  restorePatient as restorePatientApi,
+  deletePatientPermanently,
+} from '../services/patientService'
+import { login as loginApi, register as registerApi, logout as logoutApi, getCurrentUser } from '../services/authService'
+import { getUsers, createUser, deleteUser, type NewDoctorInput } from '../services/userService'
 
 const LIMIT = 10
-let page = 1
-let loadingRef = false
 
 interface ClinicStore {
   patients: Patient[]
-  apiPatients: Patient[]
-  localPatients: Patient[]
-  patientsSnapshot: Patient[]
-  deletedIds: Set<string>
+  page: number
   loading: boolean
   error: string | null
   hasMore: boolean
   isFiltered: boolean
+  searchTerm: string
+  dateFilter: string
+  filters: PatientFilters
+
   loadMore: () => Promise<void>
-  searchPatients: (term: string) => Promise<void>
   resetAndLoad: () => Promise<void>
-  addPatient: (patient: Patient) => void
-  updatePatient: (patient: Patient) => void
-  deletePatient: (id: string) => void
+  searchPatients: (term: string) => Promise<void>
+  setDateFilter: (year: string) => Promise<void>
+  setFilters: (filters: PatientFilters) => Promise<void>
+
+  addPatient: (patient: Omit<Patient, 'id' | 'createdAt'>) => Promise<void>
+  updatePatient: (patient: Patient) => Promise<void>
+  deletePatient: (id: string) => Promise<void>
+
+  archivedPatients: Patient[]
+  archivedLoading: boolean
+  loadArchived: () => Promise<void>
+  restorePatient: (id: string) => Promise<void>
+  deletePatientPermanently: (id: string) => Promise<void>
+
+  doctors: Doctor[]
+  doctorsLoading: boolean
+  loadDoctors: () => Promise<void>
+  addDoctor: (input: NewDoctorInput) => Promise<void>
+  removeDoctor: (id: string) => Promise<void>
 
   favorites: string[]
   toggleFavorite: (id: string) => void
@@ -37,11 +61,7 @@ interface ClinicStore {
   openAdd: () => void
   openEdit: (patient: Patient) => void
   closeModal: () => void
-  handleSave: (patient: Patient) => void
-
-  newPatientIds: Set<string>
-  addNewPatientId: (id: string) => void
-  removeNewPatientId: (id: string) => void
+  handleSave: (patient: Patient) => Promise<void>
 
   patientDetail: Patient | null
   fetchPatientById: (id: string) => Promise<void>
@@ -49,27 +69,27 @@ interface ClinicStore {
   sidebarOpen: boolean
   setSidebarOpen: (open: boolean) => void
 
-  dateFilter: string
-  setDateFilter: (year: string) => Promise<void>
-
-  resetAndLoadWithSnapshot: (snapshot: Patient[]) => Promise<void>
-
   selectedPatient: Patient | null
   setSelectedPatient: (patient: Patient | null) => void
+
+  authUser: AuthUser | null
+  login: (email: string, password: string) => Promise<void>
+  register: (name: string, email: string, password: string, specialty?: string) => Promise<void>
+  logout: () => void
 }
 
 export const useClinicStore = create<ClinicStore>()(
   persist(
     (set, get) => ({
       patients: [],
-      apiPatients: [],
-      localPatients: [],
-      patientsSnapshot: [],
-      deletedIds: new Set<string>(),
+      page: 1,
       loading: false,
       error: null,
       hasMore: true,
       isFiltered: false,
+      searchTerm: '',
+      dateFilter: 'all',
+      filters: {},
 
       selectedPatient: null,
       setSelectedPatient: (patient) => set({ selectedPatient: patient }),
@@ -77,207 +97,163 @@ export const useClinicStore = create<ClinicStore>()(
       sidebarOpen: true,
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
 
-      dateFilter: 'all',
+      authUser: getCurrentUser(),
 
-      setDateFilter: async (year) => {
-        const { deletedIds, patients, patientsSnapshot } = get()
-
-        if (year === 'all') {
-          // Guardar snapshot si no hay uno ya (misma lógica que búsqueda)
-          const snapshot = patientsSnapshot.length > 0 ? patientsSnapshot : patients
-          await get().resetAndLoadWithSnapshot(snapshot)
-          return
-        }
-
-        // Guardar snapshot antes de filtrar si no hay uno
-        const currentSnapshot = patientsSnapshot.length > 0 ? patientsSnapshot : patients
-
-        if (loadingRef) return
-        loadingRef = true
-        set({
-          loading: true,
-          error: null,
-          dateFilter: year,
-          patientsSnapshot: currentSnapshot,
-        })
-        try {
-          const allFromAPI = await getAllPatientsByYear(year)
-          const filteredAPI = allFromAPI.filter(p => !deletedIds.has(p.id))
-          const { localPatients: lp } = get()
-          const withEdits = filteredAPI.map(p => {
-            const edited = lp.find(l => l.id === p.id)
-            return edited ?? p
-          })
-          const apiIds = new Set(withEdits.map(p => p.id))
-          const pureLocal = lp.filter(
-            p => !apiIds.has(p.id) &&
-            new Date(p.createdAt).getFullYear().toString() === year
-          )
-          const combined = [...pureLocal, ...withEdits]
-          set({ patients: combined, hasMore: false, isFiltered: true })
-        } catch {
-          set({ error: 'No se pudieron cargar los pacientes de ese año.' })
-        } finally {
-          loadingRef = false
-          set({ loading: false })
-        }
+      login: async (email, password) => {
+        const user = await loginApi(email, password)
+        set({ authUser: user })
       },
 
-      // Método interno para restaurar desde snapshot
-      resetAndLoadWithSnapshot: async (snapshot: Patient[]) => {
-        const { localPatients, deletedIds } = get()
+      register: async (name, email, password, specialty) => {
+        const user = await registerApi(name, email, password, specialty)
+        set({ authUser: user })
+      },
 
-        if (snapshot.length > 0) {
-          const restored = snapshot
-            .filter(p => !deletedIds.has(p.id))
-            .map(p => {
-              const edited = localPatients.find(l => l.id === p.id)
-              return edited ?? p
-            })
-          const existingIds = new Set(restored.map(p => p.id))
-          const pureLocal = localPatients.filter(p => !existingIds.has(p.id))
-          set({
-            patients: [...pureLocal, ...restored],
-            hasMore: true,
-            error: null,
-            dateFilter: 'all',
-            isFiltered: false,
-            patientsSnapshot: [],
-          })
-          return
-        }
-
-        page = 1
-        loadingRef = false
-        set({
-          patients: localPatients,
-          apiPatients: [],
-          hasMore: true,
-          error: null,
-          dateFilter: 'all',
-          isFiltered: false,
-          patientsSnapshot: [],
-        })
-        await get().loadMore()
+      logout: () => {
+        logoutApi()
+        set({ authUser: null, patients: [], page: 1, hasMore: true })
       },
 
       loadMore: async () => {
-        const { hasMore, isFiltered } = get()
-        if (loadingRef || !hasMore || isFiltered) return
-        loadingRef = true
+        const { loading, hasMore, page, isFiltered, searchTerm, dateFilter, filters } = get()
+        if (loading || !hasMore || isFiltered) return
         set({ loading: true, error: null })
         try {
-          const data = await getPatients(page, LIMIT)
-          if (data.length < LIMIT) set({ hasMore: false })
-          set(state => {
-            const filtered = data
-              .filter((p: Patient) => !state.deletedIds.has(p.id))
-              .map((p: Patient) => {
-                const edited = state.localPatients.find(l => l.id === p.id)
-                return edited ?? p
-              })
-            const existingIds = new Set(state.patients.map(p => p.id))
-            const newPatients = filtered.filter((p: Patient) => !existingIds.has(p.id))
-            const existingApiIds = new Set(state.apiPatients.map(p => p.id))
-            const newApiPatients = data.filter((p: Patient) => !existingApiIds.has(p.id))
-            return {
-              patients: [...state.patients, ...newPatients],
-              apiPatients: [...state.apiPatients, ...newApiPatients],
-            }
-          })
-          page += 1
+          const data = await getPatients(page, LIMIT, { search: searchTerm, year: dateFilter, filters })
+          set(state => ({
+            patients: [...state.patients, ...data.items],
+            hasMore: data.hasMore,
+            page: page + 1,
+          }))
         } catch {
           set({ error: 'No se pudieron cargar los pacientes. Intentá de nuevo.' })
         } finally {
-          loadingRef = false
-          set({ loading: false })
-        }
-      },
-
-      searchPatients: async (term: string) => {
-        if (loadingRef) return
-        loadingRef = true
-        const { patients, patientsSnapshot } = get()
-        const snapshot = patientsSnapshot.length > 0 ? patientsSnapshot : patients
-        set({
-          loading: true,
-          error: null,
-          patientsSnapshot: snapshot,
-        })
-
-        const { localPatients, deletedIds } = get()
-        const termLower = term.trim().toLowerCase()
-
-        const localResults = [
-          ...localPatients,
-          ...snapshot.filter(p =>
-            !localPatients.find(l => l.id === p.id) &&
-            !deletedIds.has(p.id)
-          )
-        ]
-          .filter(p => p.name.trim().toLowerCase().includes(termLower))
-          .filter((p, i, arr) => arr.findIndex(x => x.id === p.id) === i)
-
-        set({ patients: localResults, hasMore: false, isFiltered: true })
-
-        try {
-          const apiResults = await getPatients(1, 100, term)
-          const filteredApi = apiResults
-            .filter((p: Patient) => !deletedIds.has(p.id))
-            .map((p: Patient) => {
-              const edited = localPatients.find(l => l.id === p.id)
-              return edited ?? p
-            })
-          const localIds = new Set(localResults.map(p => p.id))
-          const uniqueApi = filteredApi.filter((p: Patient) => !localIds.has(p.id))
-          const combined = [...localResults, ...uniqueApi]
-          set({ patients: combined, hasMore: false, isFiltered: true })
-        } catch {
-          if (localResults.length === 0) {
-            set({ error: 'Error al buscar pacientes.' })
-          }
-        } finally {
-          loadingRef = false
           set({ loading: false })
         }
       },
 
       resetAndLoad: async () => {
-        const { patientsSnapshot } = get()
-        await get().resetAndLoadWithSnapshot(patientsSnapshot)
+        set({ patients: [], page: 1, hasMore: true, isFiltered: false, error: null, searchTerm: '', dateFilter: 'all', filters: {} })
+        await get().loadMore()
       },
 
-      addPatient: (patient) =>
-        set(state => ({
-          patients: [patient, ...state.patients],
-          localPatients: [patient, ...state.localPatients],
-          patientsSnapshot: state.patientsSnapshot.length > 0
-            ? [patient, ...state.patientsSnapshot]
-            : state.patientsSnapshot,
-        })),
+      searchPatients: async (term) => {
+        const { filters } = get()
+        set({ loading: true, error: null, searchTerm: term, isFiltered: true })
+        try {
+          const data = await getPatients(1, 100, { search: term, filters })
+          set({ patients: data.items, hasMore: false })
+        } catch {
+          set({ error: 'Error al buscar pacientes.' })
+        } finally {
+          set({ loading: false })
+        }
+      },
 
-      updatePatient: (updated) =>
-        set(state => {
-          const isAlreadyLocal = state.localPatients.some(p => p.id === updated.id)
-          return {
-            patients: state.patients.map(p => p.id === updated.id ? updated : p),
-            apiPatients: state.apiPatients.map(p => p.id === updated.id ? updated : p),
-            patientsSnapshot: state.patientsSnapshot.map(p => p.id === updated.id ? updated : p),
-            localPatients: isAlreadyLocal
-              ? state.localPatients.map(p => p.id === updated.id ? updated : p)
-              : [...state.localPatients, updated],
-          }
-        }),
+      setDateFilter: async (year) => {
+        const { filters, searchTerm } = get()
+        if (year === 'all' && Object.keys(filters).length === 0 && !searchTerm) {
+          await get().resetAndLoad()
+          return
+        }
+        set({ loading: true, error: null, dateFilter: year, isFiltered: true })
+        try {
+          const data = await getPatients(1, 100, { year: year === 'all' ? undefined : year, search: searchTerm, filters })
+          set({ patients: data.items, hasMore: false })
+        } catch {
+          set({ error: 'No se pudieron cargar los pacientes de ese año.' })
+        } finally {
+          set({ loading: false })
+        }
+      },
 
-      deletePatient: (id) =>
+      setFilters: async (filters) => {
+        const { dateFilter, searchTerm } = get()
+        const hasFilters = Object.values(filters).some(Boolean)
+        set({ loading: true, error: null, filters, isFiltered: hasFilters || !!searchTerm || dateFilter !== 'all' })
+        try {
+          const data = await getPatients(1, 100, {
+            year: dateFilter === 'all' ? undefined : dateFilter,
+            search: searchTerm,
+            filters,
+          })
+          set({ patients: data.items, hasMore: false })
+        } catch {
+          set({ error: 'No se pudieron aplicar los filtros.' })
+        } finally {
+          set({ loading: false })
+        }
+      },
+
+      addPatient: async (patient) => {
+        const created = await createPatient(patient)
+        set(state => ({ patients: [created, ...state.patients] }))
+      },
+
+      updatePatient: async (patient) => {
+        const updated = await updatePatientApi(patient.id, patient)
+        set(state => ({ patients: state.patients.map(p => p.id === updated.id ? updated : p) }))
+      },
+
+      deletePatient: async (id) => {
+        await archivePatient(id)
         set(state => ({
           patients: state.patients.filter(p => p.id !== id),
-          localPatients: state.localPatients.filter(p => p.id !== id),
-          apiPatients: state.apiPatients.filter(p => p.id !== id),
-          patientsSnapshot: state.patientsSnapshot.filter(p => p.id !== id),
           favorites: state.favorites.filter(f => f !== id),
-          deletedIds: new Set(state.deletedIds).add(id),
-        })),
+        }))
+      },
+
+      archivedPatients: [],
+      archivedLoading: false,
+
+      loadArchived: async () => {
+        set({ archivedLoading: true })
+        try {
+          const data = await getPatients(1, 100, { archived: true })
+          set({ archivedPatients: data.items })
+        } catch {
+          get().addToast('No se pudieron cargar los pacientes archivados', 'error')
+        } finally {
+          set({ archivedLoading: false })
+        }
+      },
+
+      restorePatient: async (id) => {
+        await restorePatientApi(id)
+        set(state => ({ archivedPatients: state.archivedPatients.filter(p => p.id !== id) }))
+        get().addToast('Paciente restaurado', 'success')
+      },
+
+      deletePatientPermanently: async (id) => {
+        await deletePatientPermanently(id)
+        set(state => ({ archivedPatients: state.archivedPatients.filter(p => p.id !== id) }))
+        get().addToast('Paciente eliminado definitivamente', 'success')
+      },
+
+      doctors: [],
+      doctorsLoading: false,
+
+      loadDoctors: async () => {
+        set({ doctorsLoading: true })
+        try {
+          const doctors = await getUsers()
+          set({ doctors })
+        } catch {
+          get().addToast('No se pudo cargar la lista de médicos', 'error')
+        } finally {
+          set({ doctorsLoading: false })
+        }
+      },
+
+      addDoctor: async (input) => {
+        const doctor = await createUser(input)
+        set(state => ({ doctors: [...state.doctors, doctor].sort((a, b) => a.name.localeCompare(b.name)) }))
+      },
+
+      removeDoctor: async (id) => {
+        await deleteUser(id)
+        set(state => ({ doctors: state.doctors.filter(d => d.id !== id) }))
+      },
 
       favorites: [],
 
@@ -309,40 +285,35 @@ export const useClinicStore = create<ClinicStore>()(
       openEdit: (patient) => set({ modalPatient: patient, modalMode: 'edit' }),
       closeModal: () => set({ modalPatient: undefined, modalMode: null }),
 
-      handleSave: (patient) => {
-        const { modalMode, addPatient, updatePatient, addToast, addNewPatientId, closeModal } = get()
-        if (modalMode === 'add') {
-          addPatient(patient)
-          addNewPatientId(patient.id)
-          addToast('Paciente agregado correctamente', 'success')
-        } else {
-          updatePatient(patient)
-          addToast('Paciente actualizado correctamente', 'success')
+      handleSave: async (patient) => {
+        const { modalMode, addPatient, updatePatient, addToast, closeModal } = get()
+        try {
+          if (modalMode === 'add') {
+            const {
+              name, documentId, birthDate, gender, phone, email, address,
+              bloodType, allergies, diagnosis, assignedDoctor, status, notes, avatar,
+            } = patient
+            await addPatient({
+              name, documentId, birthDate, gender, phone, email, address,
+              bloodType, allergies, diagnosis, assignedDoctor, status, notes, avatar,
+            })
+            addToast('Paciente agregado correctamente', 'success')
+          } else {
+            await updatePatient(patient)
+            addToast('Paciente actualizado correctamente', 'success')
+          }
+          closeModal()
+        } catch {
+          addToast('No se pudo guardar el paciente', 'error')
         }
-        closeModal()
       },
-
-      newPatientIds: new Set<string>(),
-
-      addNewPatientId: (id) =>
-        set(state => ({ newPatientIds: new Set(state.newPatientIds).add(id) })),
-
-      removeNewPatientId: (id) =>
-        set(state => {
-          const s = new Set(state.newPatientIds)
-          s.delete(id)
-          return { newPatientIds: s }
-        }),
 
       patientDetail: null,
 
       fetchPatientById: async (id: string) => {
         set({ loading: true, error: null })
         try {
-          const BASE_URL = import.meta.env.VITE_API_URL
-          const response = await fetch(`${BASE_URL}/${id}`)
-          if (!response.ok) throw new Error('Paciente no encontrado')
-          const data = await response.json()
+          const data = await getPatientById(id)
           set({ patientDetail: data })
         } catch {
           set({ error: 'No se pudo cargar el paciente.' })

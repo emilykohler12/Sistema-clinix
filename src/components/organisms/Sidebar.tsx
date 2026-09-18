@@ -1,13 +1,22 @@
+import { NavLink, useNavigate } from 'react-router-dom'
 import { useClinicStore } from '../../store/useClinicStore'
 
 interface SidebarProps {
   darkMode: boolean
   onToggleDarkMode: () => void
-  onAddPatient: () => void
 }
 
-export function Sidebar({ darkMode, onToggleDarkMode, onAddPatient }: SidebarProps) {
-  const { sidebarOpen, setSidebarOpen } = useClinicStore()
+const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+  `w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white transition-all hover:bg-white/10 ${isActive ? 'sidebar-nav-active' : ''}`
+
+export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
+  const { sidebarOpen, setSidebarOpen, authUser, logout } = useClinicStore()
+  const navigate = useNavigate()
+
+  function handleLogout() {
+    logout()
+    navigate('/login')
+  }
 
   const SidebarContent = ({ onClose }: { onClose?: () => void }) => (
     <div className="flex flex-col h-full sidebar-bg">
@@ -19,27 +28,40 @@ export function Sidebar({ darkMode, onToggleDarkMode, onAddPatient }: SidebarPro
           ✕
         </button>
         <img src="/logo.jpg" alt="Clinix" className="w-14 h-14 object-contain rounded-xl mb-3" />
-        <h1 className="font-display text-xl font-bold text-white tracking-wide">CLINIX</h1>
+        <h1 className="text-xl font-bold text-white tracking-wide">CLINIX</h1>
         <p className="text-xs mt-0.5 sidebar-subtitle">Sistema de Gestión Clínica</p>
       </div>
 
       <nav className="flex-1 p-4 flex flex-col gap-1">
-        <button
-          onClick={() => { onAddPatient(); onClose?.() }}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white transition-all hover:bg-white/10 sidebar-nav-active"
-        >
-          <span className="text-lg">👥</span>
+        <NavLink to="/" end onClick={onClose} className={navLinkClass}>
           Pacientes
-        </button>
+        </NavLink>
+        <NavLink to="/archivados" onClick={onClose} className={navLinkClass}>
+          Archivados
+        </NavLink>
+        <NavLink to="/medicos" onClick={onClose} className={navLinkClass}>
+          Médicos
+        </NavLink>
       </nav>
 
-      <div className="p-4 border-t sidebar-border">
+      <div className="p-4 border-t sidebar-border flex flex-col gap-1">
+        {authUser && (
+          <div className="px-4 pb-2 text-white/80">
+            <p className="text-sm font-medium truncate">{authUser.name}</p>
+            <p className="text-xs sidebar-subtitle truncate">{authUser.email}</p>
+          </div>
+        )}
         <button
           onClick={onToggleDarkMode}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white transition-all hover:bg-white/10"
         >
-          <span className="text-lg">{darkMode ? '☀️' : '🌙'}</span>
           {darkMode ? 'Modo claro' : 'Modo oscuro'}
+        </button>
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white transition-all hover:bg-white/10"
+        >
+          Cerrar sesión
         </button>
       </div>
     </div>

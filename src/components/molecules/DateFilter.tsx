@@ -1,4 +1,5 @@
-import { useClinicStore } from '../../store/useClinicStore'
+import { useEffect, useState } from 'react'
+import { getAvailableYears } from '../../services/patientService'
 
 interface DateFilterProps {
   dateFilter: string
@@ -6,26 +7,25 @@ interface DateFilterProps {
 }
 
 export function DateFilter({ dateFilter, onDateFilterChange }: DateFilterProps) {
-  const { apiPatients, localPatients } = useClinicStore()
+  const [years, setYears] = useState<number[]>([])
 
-  const allForYears = [...apiPatients, ...localPatients]
-  const dynamicYears = Array.from(
-    new Set(allForYears.map(p => new Date(p.createdAt).getFullYear().toString()))
-  ).sort()
+  useEffect(() => {
+    getAvailableYears().then(setYears).catch(() => setYears([]))
+  }, [])
 
-  const years = ['all', ...dynamicYears]
+  const options = ['all', ...years.map(String)]
 
   return (
     <div className="flex gap-2 mb-6 flex-wrap">
-      {years.map(year => (
+      {options.map(year => (
         <button
           key={year}
           onClick={() => onDateFilterChange(year)}
           className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
           style={{
-            backgroundColor: dateFilter === year ? '#4c6f87' : 'var(--bg-card)',
+            backgroundColor: dateFilter === year ? 'var(--accent)' : 'var(--bg-card)',
             color: dateFilter === year ? 'white' : 'var(--text-secondary)',
-            border: `1px solid ${dateFilter === year ? '#4c6f87' : 'var(--bg-card-border)'}`,
+            border: `1px solid ${dateFilter === year ? 'var(--accent)' : 'var(--bg-card-border)'}`,
           }}
         >
           {year === 'all' ? 'Todos los años' : year}

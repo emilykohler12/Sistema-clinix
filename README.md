@@ -1,208 +1,155 @@
-# 🏥 Clinix — Sistema de Historial de Pacientes
+# 🏥 Clinix — Sistema de Gestión Clínica
 
-Dashboard frontend para gestión y exploración de registros de pacientes, desarrollado como parte de un challenge técnico para Sirius Software.
+Aplicación full-stack para la gestión de pacientes de un centro de salud: historia clínica básica, búsqueda y filtros, y acceso protegido por login para el personal médico/administrativo.
 
----
-
-## 🚀 Demo
-
-[Ver demo en Vercel](https://sistema-clinix.vercel.app)
+Proyecto personal desarrollado para portfolio, con frontend, backend y base de datos propios (sin depender de APIs de terceros).
 
 ---
 
 ## ✨ Features
 
-### Requeridas
-- 📋 Listado de pacientes en tarjetas con información básica
-- 🔍 Búsqueda en tiempo real con debounce (300ms)
-- ➕ Modal para agregar y editar pacientes con validación de formulario
-- 🗑️ Eliminación con modal de confirmación y animación de salida
-- ⭐ Favoritos persistidos en localStorage
-- 💀 Skeletons loader con animación shimmer durante la carga
-- ♾️ Infinite scroll con paginación de la API
+- 🔐 Login con JWT (roles admin / médico)
+- 📋 Listado de pacientes con historia clínica básica (documento, obra social, diagnóstico, médico asignado, estado)
+- 🔍 Búsqueda en tiempo real con debounce (300ms) y filtro por año de registro
+- ➕ Alta, edición y baja de pacientes con validación de formulario — persistidos en MongoDB
+- ⭐ Favoritos, ⊞ vista grilla/lista, 🔤 orden A→Z / Z→A
+- 💀 Skeletons con animación shimmer durante la carga, ♾️ infinite scroll con paginación real del backend
+- 🌙 Dark mode con persistencia en localStorage
 - 📱 Diseño responsive (mobile, tablet, desktop)
 - 🔔 Notificaciones toast de éxito y error
-
-### Adicionales
-- 🌙 Dark mode con persistencia en localStorage
-- ⊞ Toggle entre vista grilla y vista lista
-- 🔤 Ordenamiento A→Z y Z→A por nombre
-- 📅 Filtro dinámico por año de registro (generado desde los datos reales)
-- 📊 Barra de estadísticas (total, favoritos, agregados en sesión)
-- 🏷️ Badge "Nuevo" en pacientes agregados durante la sesión
-- 📄 Página de detalle por paciente con React Router
-- 🎨 Avatar con fallback a iniciales coloreadas cuando la imagen falla
 - 📖 Documentación de componentes con Storybook
 
 ---
 
 ## 🛠️ Stack tecnológico
 
+**Frontend**
+
 | Tecnología | Uso |
 |---|---|
 | React 19 + TypeScript | Framework principal |
 | Vite | Bundler y dev server |
-| Tailwind CSS | Estilos utilitarios |
+| Tailwind CSS v4 | Estilos utilitarios |
 | React Router v7 | Navegación entre páginas |
 | Zustand | Estado global |
 | Storybook | Documentación de componentes |
-| Vitest | Tests unitarios |
-| Testing Library | Testing de hooks y componentes |
+| Vitest + Testing Library | Tests unitarios |
 
-> No se utilizaron librerías de componentes UI (Material UI, Bootstrap, Chakra, etc.)
+**Backend**
 
----
+| Tecnología | Uso |
+|---|---|
+| Node.js + Express | API REST |
+| MongoDB + Mongoose | Base de datos y modelado |
+| JWT + bcrypt | Autenticación y hash de contraseñas |
 
-## 🌐 API
-
-Los datos se obtienen de MockAPI:
-GET https://63bedcf7f5cfc0949b634fc8.mockapi.io/users?page=1&limit=10
-
-Campos utilizados: `id`, `name`, `avatar`, `description`, `website`, `createdAt`
-
-La paginación usa los parámetros `page` y `limit`. El infinite scroll detecta automáticamente cuando no hay más páginas comparando la cantidad de resultados recibidos contra el límite.
+> No se utilizaron librerías de componentes UI (Material UI, Bootstrap, Chakra, etc.) en el frontend.
 
 ---
 
 ## 📁 Estructura del proyecto
-src/
 
-├── components/
-
-│   ├── atoms/            # Elementos base indivisibles
-
-│   │   ├── Avatar.tsx
-
-│   │   ├── ProgressBar.tsx
-
-│   │   └── Skeleton.tsx
-
-│   ├── molecules/        # Combinaciones de átomos
-
-│   │   ├── DateFilter.tsx
-
-│   │   ├── SearchBar.tsx
-
-│   │   └── StatCard.tsx
-
-│   └── organisms/        # Secciones completas de UI
-
-│       ├── ConfirmModal.tsx
-
-│       ├── Navbar.tsx
-
-│       ├── PatientCard.tsx
-
-│       ├── PatientModal.tsx
-
-│       ├── Sidebar.tsx
-
-│       ├── StatsBar.tsx
-
-│       └── Toast.tsx
-
-├── hooks/                # Lógica reutilizable
-
-│   ├── useDebounce.ts
-
-│   ├── useFavorites.ts
-
-│   ├── usePatients.ts
-
-│   └── useToast.ts
-
-├── pages/                # Páginas principales
-
-│   ├── Home.tsx
-
-│   └── PatientDetail.tsx
-
-├── services/             # Comunicación con la API
-
-│   └── patientService.ts
-
-├── store/                # Estado global con Zustand
-
-│   └── useClinicStore.ts
-
-├── test/                 # Tests unitarios
-
-│   ├── avatarHelper.test.ts
-
-│   ├── formatDate.test.ts
-
-│   ├── useDebounce.test.ts
-
-│   └── setup.ts
-
-├── types/                # Interfaces TypeScript
-
-│   └── index.ts
-
-└── utils/                # Funciones auxiliares
-
-├── avatarHelper.ts
-
-└── formatDate.ts
+```
+Sistema-clinix/
+├── src/                        # Frontend (React + Vite)
+│   ├── components/
+│   │   ├── atoms/              # Avatar, ProgressBar, Skeleton
+│   │   ├── molecules/          # DateFilter, SearchBar, StatCard
+│   │   └── organisms/          # ConfirmModal, PatientCard, PatientModal,
+│   │                           # PatientDetailModal, PatientInfoGrid, Sidebar, StatsBar, Toast
+│   ├── hooks/                  # useDebounce
+│   ├── pages/                  # Home, Login, PatientDetail
+│   ├── services/               # httpClient, authService, patientService
+│   ├── store/                  # useClinicStore (Zustand)
+│   ├── test/                   # Tests unitarios
+│   ├── types/                  # Interfaces TypeScript
+│   └── utils/                  # avatarHelper, formatDate
+│
+└── server/                     # Backend (Node + Express + MongoDB)
+    ├── src/
+    │   ├── config/db.js        # Conexión a MongoDB
+    │   ├── middleware/auth.js  # Verificación de JWT
+    │   ├── models/             # User, Patient (Mongoose)
+    │   ├── routes/             # auth, patients
+    │   ├── index.js            # Punto de entrada del servidor
+    │   └── seed.js             # Crea el usuario admin y pacientes de ejemplo
+    └── .env.example
+```
 
 ---
 
 ## ⚙️ Instalación y uso local
 
+Necesitás una instancia de MongoDB corriendo (local, Docker o [Atlas free tier](https://www.mongodb.com/cloud/atlas/register)).
+
+### 1. Backend
+
 ```bash
-# Clonar el repositorio
-git clone https://github.com/emilykohler12/Sistema-clinix.git
-cd Sistema-clinix
-
-# Instalar dependencias
+cd server
 npm install
+cp .env.example .env      # Ajustá MONGODB_URI si no usás el default local
+npm run seed               # Crea el usuario admin y pacientes de ejemplo
+npm run dev                 # Levanta la API en http://localhost:4000
+```
 
-# Correr en desarrollo
-npm run dev
+Credenciales del usuario admin creado por el seed (configurables en `.env`):
 
-# Correr Storybook
-npm run storybook
+```
+Email:     admin@clinix.com
+Password:  Admin1234
+```
 
-# Correr tests
-npm run test:run
+### 2. Frontend
 
-# Build para producción
-npm run build
+```bash
+npm install
+npm run dev                 # http://localhost:5173
+```
+
+El frontend espera la API en `VITE_API_URL` (ver `.env`), por defecto `http://localhost:4000/api`.
+
+### 3. Otros comandos
+
+```bash
+npm run storybook           # Documentación de componentes
+npm run test:run            # Tests unitarios
+npm run build                # Build de producción
 ```
 
 ---
 
-## 🧪 Tests
+## 🌐 API
 
-18 tests unitarios cubriendo:
+Todos los endpoints de pacientes requieren un header `Authorization: Bearer <token>` obtenido en `/api/auth/login`.
 
-- `avatarHelper` — getInitials, isValidAvatar, getAvatarColor
-- `formatDate` — formateo de fechas ISO
-- `useDebounce` — comportamiento del delay
-
-```bash
-npm run test:run
-```
+| Método | Endpoint | Descripción |
+|---|---|---|
+| POST | `/api/auth/login` | Login, devuelve token JWT |
+| GET | `/api/auth/me` | Usuario autenticado |
+| GET | `/api/patients` | Lista paginada (`page`, `limit`, `search`, `year`) |
+| GET | `/api/patients/years` | Años disponibles para filtrar |
+| GET | `/api/patients/:id` | Detalle de un paciente |
+| POST | `/api/patients` | Crear paciente |
+| PUT | `/api/patients/:id` | Editar paciente |
+| DELETE | `/api/patients/:id` | Eliminar paciente |
 
 ---
 
 ## 📐 Decisiones técnicas
 
-**Atomic Design** — los componentes están organizados en átomos, moléculas y organismos siguiendo la metodología de Brad Frost, lo que facilita la reutilización y el mantenimiento.
+**Atomic Design** — los componentes del frontend están organizados en átomos, moléculas y organismos siguiendo la metodología de Brad Frost.
 
-**Zustand para estado global** — reemplaza el prop drilling que existía con Context API. Cualquier componente accede directamente al store sin necesidad de pasar props por múltiples niveles.
+**Zustand para estado global** — evita el prop drilling; cualquier componente accede al store sin pasar props por múltiples niveles.
 
-**Infinite scroll manual** — implementado con `IntersectionObserver` en vez de una librería externa para mantener control total y evitar dependencias innecesarias.
+**Backend propio en vez de mock API** — el CRUD de pacientes y la autenticación viven en una API REST real con persistencia en MongoDB, en lugar de una API pública de solo lectura. Esto permite altas/bajas/ediciones reales y un modelo de datos clínico (documento, obra social, diagnóstico, alergias, médico asignado) en lugar de campos genéricos.
 
-**Avatar con fallback** — la API devuelve avatares inválidos (`{}`, string vacío, URLs rotas). Se resuelve con un componente `Avatar` que detecta errores de carga (`onError`) y muestra iniciales con color consistente por ID.
+**Autenticación con JWT** — el login devuelve un token que se guarda en `localStorage` y se envía en cada request; las rutas de pacientes están protegidas por middleware en el backend y por un guard de rutas en el frontend.
 
-**Estado en memoria** — los cambios (agregar, editar, eliminar) viven en el estado de Zustand. Al recargar, la app vuelve a los datos de la API. Esto es el comportamiento esperado según el enunciado del challenge.
+**Infinite scroll manual** — implementado con `IntersectionObserver` en vez de una librería externa, contra la paginación real del backend.
 
-**CSS variables para temas** — dark/light mode implementado con variables CSS en `:root` y `html.dark`, sin dependencias externas. Todos los componentes responden al tema con una sola clase en el `html`.
+**Avatar con fallback** — el componente `Avatar` detecta errores de carga (`onError`) y muestra iniciales con color consistente por ID cuando no hay foto.
 
-**Shimmer skeleton** — la animación de carga usa un gradiente que se desplaza de izquierda a derecha, replicando la forma visual de una `PatientCard` real.
-
-**Filtro de años dinámico** — los botones de año se generan automáticamente desde los datos reales de pacientes, por lo que cualquier año que aparezca en los datos se muestra como opción de filtro.
+**CSS variables para temas** — dark/light mode con variables CSS en `:root` y `html.dark`, sin dependencias externas.
 
 ---
 

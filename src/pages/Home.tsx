@@ -8,6 +8,7 @@ import { StatsBar } from '../components/organisms/StatsBar'
 import { ProgressBar } from '../components/atoms/ProgressBar'
 import { SearchBar } from '../components/molecules/SearchBar'
 import { DateFilter } from '../components/molecules/DateFilter'
+import { FilterBar } from '../components/molecules/FilterBar'
 import { useClinicStore } from '../store/useClinicStore'
 import { useDebounce } from '../hooks/useDebounce'
 import type { Patient, SortOption, ViewMode } from '../types'
@@ -16,8 +17,9 @@ export function Home() {
   const {
     patients, loading, error, hasMore, loadMore, searchPatients, resetAndLoad,
     deletePatient, isFavorite, toggleFavorite, favorites,
-    addToast, openEdit, openAdd, newPatientIds, removeNewPatientId,
+    addToast, openEdit, openAdd,
     dateFilter, setDateFilter, isFiltered, sidebarOpen,
+    filters, setFilters, doctors, loadDoctors,
   } = useClinicStore()
 
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('clinix_theme') === 'dark')
@@ -26,7 +28,7 @@ export function Home() {
   const [sortOption, setSortOption] = useState<SortOption>('az')
   const [patientToDelete, setPatientToDelete] = useState<Patient | null>(null)
   const [removingId, setRemovingId] = useState<string | null>(null)
-  const [showingNewOnly, setShowingNewOnly] = useState(false)
+  const [showingFavoritesOnly, setShowingFavoritesOnly] = useState(false)
   const [isSearchMode, setIsSearchMode] = useState(false)
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
 
@@ -40,6 +42,7 @@ export function Home() {
     if (!initialized.current) {
       initialized.current = true
       loadMore()
+      loadDoctors()
     }
   }, [])
 
@@ -72,11 +75,11 @@ export function Home() {
       !isSearchMode &&
       !isFiltered &&
       !isChangingView.current &&
-      !showingNewOnly
+      !showingFavoritesOnly
     ) {
       loadMore()
     }
-  }, [hasMore, loading, isSearchMode, isFiltered, showingNewOnly])
+  }, [hasMore, loading, isSearchMode, isFiltered, showingFavoritesOnly])
 
   useEffect(() => {
     if (observerRef.current) observerRef.current.disconnect()
@@ -85,25 +88,28 @@ export function Home() {
     return () => observerRef.current?.disconnect()
   }, [handleObserver])
 
-  const filteredAndSorted = patients
-    .filter(p => showingNewOnly ? newPatientIds.has(p.id) : true)
-    .sort((a, b) => {
-      if (sortOption === 'za') return b.name.trim().localeCompare(a.name.trim())
-      return a.name.trim().localeCompare(b.name.trim())
-    })
+  const sortedPatients = [...patients].sort((a, b) => {
+    if (sortOption === 'za') return b.name.trim().localeCompare(a.name.trim())
+    return a.name.trim().localeCompare(b.name.trim())
+  })
 
-  const favoritePatients = filteredAndSorted.filter(p => isFavorite(p.id))
-  const allPatients = filteredAndSorted.filter(p => !isFavorite(p.id))
+  const favoritePatients = sortedPatients.filter(p => isFavorite(p.id))
+  const allPatients = sortedPatients.filter(p => !isFavorite(p.id))
 
   function handleDelete() {
     if (!patientToDelete) return
-    setRemovingId(patientToDelete.id)
+    const id = patientToDelete.id
+    setRemovingId(id)
     setPatientToDelete(null)
-    setTimeout(() => {
-      deletePatient(patientToDelete.id)
-      removeNewPatientId(patientToDelete.id)
-      addToast('Paciente eliminado', 'success')
-      setRemovingId(null)
+    setTimeout(async () => {
+      try {
+        await deletePatient(id)
+        addToast('Paciente eliminado', 'success')
+      } catch {
+        addToast('No se pudo eliminar el paciente', 'error')
+      } finally {
+        setRemovingId(null)
+      }
     }, 250)
   }
 
@@ -114,9 +120,10 @@ export function Home() {
   }
 
   function handleClearAll() {
-    setShowingNewOnly(false)
+    setShowingFavoritesOnly(false)
     setSearch('')
     setDateFilter('all')
+    setFilters({})
   }
 
   function handleRetry() {
@@ -133,14 +140,14 @@ export function Home() {
     ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4'
     : 'flex flex-col gap-2'
 
-  const showClearButton = showingNewOnly || isFiltered || isSearchMode
+  const hasActiveFilters = Object.values(filters).some(Boolean)
+  const showClearButton = isFiltered || isSearchMode || hasActiveFilters
 
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: 'var(--bg-page)' }}>
       <Sidebar
         darkMode={darkMode}
         onToggleDarkMode={() => setDarkMode(prev => !prev)}
-        onAddPatient={openAdd}
       />
 
       <div className="flex-1 min-w-0">
@@ -154,7 +161,7 @@ export function Home() {
                 <div className="w-10 h-10 flex-shrink-0" />
               )}
               <div>
-                <h2 className="font-display text-2xl font-bold text-primary">Pacientes</h2>
+                <h2 className="text-2xl font-bold text-primary">Pacientes</h2>
                 <p className="text-sm text-secondary">Gestión del historial clínico</p>
               </div>
             </div>
@@ -172,9 +179,9 @@ export function Home() {
           <StatsBar
             total={patients.length}
             favorites={favorites.length}
-            addedThisSession={newPatientIds.size}
-            showingNewOnly={showingNewOnly}
-            onToggleNewOnly={() => setShowingNewOnly(prev => !prev)}
+            showingFavoritesOnly={showingFavoritesOnly}
+            onSelectAll={() => setShowingFavoritesOnly(false)}
+            onSelectFavorites={() => setShowingFavoritesOnly(prev => !prev)}
           />
 
           <DateFilter
@@ -182,11 +189,13 @@ export function Home() {
             onDateFilterChange={setDateFilter}
           />
 
+          <FilterBar filters={filters} onChange={setFilters} doctors={doctors} />
+
           {favoritePatients.length > 0 && (
             <section className="mb-8">
-              <h3 className="font-display font-bold mb-3 flex items-center gap-2 star-active">
-                ⭐ Favoritos
-                <span className="text-xs px-2 py-0.5 rounded-full font-sans font-medium" style={{ backgroundColor: '#fffbeb', color: '#f59e0b' }}>
+              <h3 className="font-bold mb-3 flex items-center gap-2 star-active">
+                Favoritos
+                <span className="text-xs px-2 py-0.5 rounded-full font-sans font-medium" style={{ backgroundColor: 'var(--status-treatment-bg)', color: 'var(--status-treatment-text)' }}>
                   {favoritePatients.length}
                 </span>
               </h3>
@@ -196,7 +205,6 @@ export function Home() {
                     key={p.id}
                     patient={p}
                     isFavorite={true}
-                    isNew={newPatientIds.has(p.id)}
                     isRemoving={removingId === p.id}
                     onToggleFavorite={toggleFavorite}
                     onEdit={openEdit}
@@ -209,82 +217,81 @@ export function Home() {
             </section>
           )}
 
-          <section>
-            <h3 className="font-display font-bold mb-3 flex items-center gap-2 text-primary">
-              {showingNewOnly
-                ? '✚ Agregados en esta sesión'
-                : isSearchMode
-                ? `${patients.length} resultado${patients.length !== 1 ? 's' : ''} para "${debouncedSearch}"`
-                : isFiltered
-                ? `Pacientes de ${dateFilter}`
-                : 'Todos los pacientes'}
-              <span className="badge-id text-xs px-2 py-0.5 rounded-full font-sans font-medium">
-                {allPatients.length}
-              </span>
-              {showClearButton && (
-                <button
-                  onClick={handleClearAll}
-                  className="icon-btn-delete text-xs px-2 py-0.5 rounded-full ml-1 font-sans"
-                >
-                  × Limpiar
-                </button>
-              )}
-            </h3>
-
-            {error && (
-              <div className="text-center py-12">
-                <p className="text-error mb-3">{error}</p>
-                <button
-                  onClick={handleRetry}
-                  className="px-4 py-2 text-sm text-white rounded-lg"
-                  style={{ backgroundColor: '#4c6f87' }}
-                >
-                  Reintentar
-                </button>
-              </div>
-            )}
-
-            {!error && allPatients.length === 0 && !loading && (
-              <div className="text-center py-16 flex flex-col items-center gap-3">
-                <span className="text-5xl">
-                  {showingNewOnly ? '✚' : isFiltered ? '📅' : '🔍'}
+          {!showingFavoritesOnly && (
+            <section>
+              <h3 className="font-bold mb-3 flex items-center gap-2 text-primary">
+                {isSearchMode
+                  ? `${patients.length} resultado${patients.length !== 1 ? 's' : ''} para "${debouncedSearch}"`
+                  : isFiltered
+                  ? `Pacientes de ${dateFilter}`
+                  : 'Todos los pacientes'}
+                <span className="badge-id text-xs px-2 py-0.5 rounded-full font-sans font-medium">
+                  {allPatients.length}
                 </span>
-                <p className="font-display font-bold text-lg text-primary">
-                  {showingNewOnly
-                    ? 'No agregaste pacientes en esta sesión'
-                    : isSearchMode
-                    ? `No se encontraron pacientes con "${debouncedSearch}"`
-                    : isFiltered
-                    ? `No hay pacientes de ${dateFilter}`
-                    : 'No se encontraron pacientes'}
-                </p>
                 {showClearButton && (
-                  <button onClick={handleClearAll} className="badge-id text-sm px-4 py-2 rounded-lg">
-                    Ver todos los pacientes
+                  <button
+                    onClick={handleClearAll}
+                    className="icon-btn-delete text-xs px-2 py-0.5 rounded-full ml-1 font-sans"
+                  >
+                    × Limpiar
                   </button>
                 )}
-              </div>
-            )}
+              </h3>
 
-            <div className={gridClass}>
-              {allPatients.map(p => (
-                <PatientCard
-                  key={p.id}
-                  patient={p}
-                  isFavorite={false}
-                  isNew={newPatientIds.has(p.id)}
-                  isRemoving={removingId === p.id}
-                  onToggleFavorite={toggleFavorite}
-                  onEdit={openEdit}
-                  onDelete={setPatientToDelete}
-                  onViewDetail={setSelectedPatient}
-                  viewMode={viewMode}
-                />
-              ))}
-              {loading && Array.from({ length: 6 }).map((_, i) => <PatientCardSkeleton key={i} />)}
+              {error && (
+                <div className="text-center py-12">
+                  <p className="text-error mb-3">{error}</p>
+                  <button
+                    onClick={handleRetry}
+                    className="px-4 py-2 text-sm text-white rounded-lg btn-save-gradient"
+                  >
+                    Reintentar
+                  </button>
+                </div>
+              )}
+
+              {!error && allPatients.length === 0 && !loading && (
+                <div className="text-center py-16 flex flex-col items-center gap-3">
+                  <p className="font-bold text-lg text-primary">
+                    {isSearchMode
+                      ? `No se encontraron pacientes con "${debouncedSearch}"`
+                      : isFiltered
+                      ? `No hay pacientes de ${dateFilter}`
+                      : 'No se encontraron pacientes'}
+                  </p>
+                  {showClearButton && (
+                    <button onClick={handleClearAll} className="badge-id text-sm px-4 py-2 rounded-lg">
+                      Ver todos los pacientes
+                    </button>
+                  )}
+                </div>
+              )}
+
+              <div className={gridClass}>
+                {allPatients.map(p => (
+                  <PatientCard
+                    key={p.id}
+                    patient={p}
+                    isFavorite={false}
+                    isRemoving={removingId === p.id}
+                    onToggleFavorite={toggleFavorite}
+                    onEdit={openEdit}
+                    onDelete={setPatientToDelete}
+                    onViewDetail={setSelectedPatient}
+                    viewMode={viewMode}
+                  />
+                ))}
+                {loading && Array.from({ length: 6 }).map((_, i) => <PatientCardSkeleton key={i} />)}
+              </div>
+              <div ref={bottomRef} className="h-4" />
+            </section>
+          )}
+
+          {showingFavoritesOnly && favoritePatients.length === 0 && (
+            <div className="text-center py-16 flex flex-col items-center gap-3">
+              <p className="font-bold text-lg text-primary">No tenés pacientes favoritos</p>
             </div>
-            <div ref={bottomRef} className="h-4" />
-          </section>
+          )}
         </div>
       </div>
 

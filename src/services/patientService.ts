@@ -1,51 +1,68 @@
-import type { Patient } from '../types'
+import type { Patient, PatientFilters } from '../types'
+import { apiFetch } from './httpClient'
 
-const BASE_URL = import.meta.env.VITE_API_URL
+interface PatientsResponse {
+  items: Patient[]
+  total: number
+  page: number
+  hasMore: boolean
+}
+
+interface GetPatientsOptions {
+  search?: string
+  year?: string
+  archived?: boolean
+  filters?: PatientFilters
+}
 
 export async function getPatients(
   page: number,
   limit: number,
-  search?: string
-): Promise<Patient[]> {
-  const params = new URLSearchParams({
-    page: String(page),
-    limit: String(limit),
-    sortBy: 'name',
-    order: 'asc',
-  })
-  if (search && search.trim() !== '') {
-    params.append('name', search.trim())
-  }
-  const response = await fetch(`${BASE_URL}?${params.toString()}`)
-  if (!response.ok) throw new Error('Error al obtener los pacientes')
-  return response.json()
+  options: GetPatientsOptions = {}
+): Promise<PatientsResponse> {
+  const { search, year, archived, filters } = options
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) })
+  if (search && search.trim() !== '') params.append('search', search.trim())
+  if (year && year !== 'all') params.append('year', year)
+  if (archived) params.append('archived', 'true')
+  if (filters?.gender) params.append('gender', filters.gender)
+  if (filters?.status) params.append('status', filters.status)
+  if (filters?.assignedDoctor) params.append('assignedDoctor', filters.assignedDoctor)
+  if (filters?.bloodType) params.append('bloodType', filters.bloodType)
+
+  return apiFetch<PatientsResponse>(`/patients?${params.toString()}`)
 }
 
-export async function getAllPatientsByYear(year: string): Promise<Patient[]> {
-  // La API no filtra por año, así que traemos todo de a páginas y filtramos
-  const allPatients: Patient[] = []
-  let currentPage = 1
-  const limit = 100
+export async function getAvailableYears(): Promise<number[]> {
+  return apiFetch<number[]>('/patients/years')
+}
 
-  while (true) {
-    const params = new URLSearchParams({
-      page: String(currentPage),
-      limit: String(limit),
-      sortBy: 'name',
-      order: 'asc',
-    })
-    const response = await fetch(`${BASE_URL}?${params.toString()}`)
-    if (!response.ok) throw new Error('Error al obtener los pacientes')
-    const data: Patient[] = await response.json()
+export async function getPatientById(id: string): Promise<Patient> {
+  return apiFetch<Patient>(`/patients/${id}`)
+}
 
-    const ofYear = data.filter(
-      p => new Date(p.createdAt).getFullYear().toString() === year
-    )
-    allPatients.push(...ofYear)
+export async function createPatient(patient: Omit<Patient, 'id' | 'createdAt'>): Promise<Patient> {
+  return apiFetch<Patient>('/patients', {
+    method: 'POST',
+    body: JSON.stringify(patient),
+  })
+}
 
-    if (data.length < limit) break
-    currentPage++
-  }
+export async function updatePatient(id: string, patient: Partial<Patient>): Promise<Patient> {
+  return apiFetch<Patient>(`/patients/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(patient),
+  })
+}
 
-  return allPatients
+export async function archivePatient(id: string): Promise<Patient> {
+  return apiFetch<Patient>(`/patients/${id}`, { method: 'DELETE' })
+}
+
+export async function restorePatient(id: string): Promise<Patient> {
+  return apiFetch<Patient>(`/patients/${id}/restore`, { method: 'POST' })
+}
+
+export async function deletePatientPermanently(id: string): Promise<void> {
+  await apiFetch<void>(`/patients/${id}?permanent=true`, { method: 'DELETE' })
 }
