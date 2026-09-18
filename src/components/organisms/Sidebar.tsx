@@ -60,18 +60,19 @@ interface WideContentProps {
   onToggleDarkMode: () => void
   onLogout: () => void
   authUser: AuthUser | null
-  onClose?: () => void
+  onCollapse: () => void
+  isMobileDrawer?: boolean
 }
 
-function WideContent({ darkMode, onToggleDarkMode, onLogout, authUser, onClose }: WideContentProps) {
+function WideContent({ darkMode, onToggleDarkMode, onLogout, authUser, onCollapse, isMobileDrawer }: WideContentProps) {
   return (
     <div className="flex flex-col h-full sidebar-bg">
       <div className="p-5 border-b sidebar-border flex flex-col items-center text-center relative">
         <button
-          onClick={onClose}
+          onClick={onCollapse}
           className="absolute top-3 right-3 w-7 h-7 rounded-lg flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all"
         >
-          {onClose ? <IconClose /> : <IconChevronLeft />}
+          {isMobileDrawer ? <IconClose /> : <IconChevronLeft />}
         </button>
         <img src="/logo.jpg" alt="Clinix" className="w-14 h-14 object-contain rounded-xl mb-3" />
         <h1 className="text-xl font-bold text-white tracking-wide">CLINIX</h1>
@@ -80,7 +81,7 @@ function WideContent({ darkMode, onToggleDarkMode, onLogout, authUser, onClose }
 
       <nav className="flex-1 p-4 flex flex-col gap-1">
         {navItems.map(({ to, end, label, Icon }) => (
-          <NavLink key={to} to={to} end={end} onClick={onClose} className={wideLinkClass}>
+          <NavLink key={to} to={to} end={end} onClick={isMobileDrawer ? onCollapse : undefined} className={wideLinkClass}>
             <Icon />
             {label}
           </NavLink>
@@ -147,7 +148,8 @@ export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
             onToggleDarkMode={onToggleDarkMode}
             onLogout={handleLogout}
             authUser={authUser}
-            onClose={() => setSidebarOpen(false)}
+            onCollapse={() => setSidebarOpen(false)}
+            isMobileDrawer
           />
         </div>
       )}
@@ -155,7 +157,13 @@ export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
       {/* Sidebar expandido en desktop — parte del layout normal */}
       {sidebarOpen && (
         <div className="hidden lg:flex flex-shrink-0 h-screen sticky top-0" style={{ width: '16rem' }}>
-          <WideContent darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} onLogout={handleLogout} authUser={authUser} />
+          <WideContent
+            darkMode={darkMode}
+            onToggleDarkMode={onToggleDarkMode}
+            onLogout={handleLogout}
+            authUser={authUser}
+            onCollapse={() => setSidebarOpen(false)}
+          />
         </div>
       )}
     </>

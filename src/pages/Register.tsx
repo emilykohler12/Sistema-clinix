@@ -54,7 +54,7 @@ export function Register() {
               value={name}
               onChange={e => setName(e.target.value)}
               required
-              className="modal-input w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="modal-input w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
               placeholder="Dra. Ana López"
             />
           </div>
@@ -65,7 +65,7 @@ export function Register() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
-              className="modal-input w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="modal-input w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
               placeholder="ana.lopez@clinix.com"
             />
           </div>
@@ -75,7 +75,7 @@ export function Register() {
               type="text"
               value={specialty}
               onChange={e => setSpecialty(e.target.value)}
-              className="modal-input w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="modal-input w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
               placeholder="Clínica médica"
             />
           </div>
@@ -86,7 +86,7 @@ export function Register() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
-              className="modal-input w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="modal-input w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
               placeholder="Mínimo 6 caracteres"
             />
           </div>
@@ -97,7 +97,7 @@ export function Register() {
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
               required
-              className="modal-input w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="modal-input w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
               placeholder="••••••••"
             />
           </div>

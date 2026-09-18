@@ -111,7 +111,7 @@ export function PatientModal({ mode, patient, onSave, onClose }: PatientModalPro
     onSave(saved)
   }
 
-  const inputClass = "w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 modal-input"
+  const inputClass = "w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)] modal-input"
   const labelClass = "text-sm mb-1 block text-secondary"
 
   return (

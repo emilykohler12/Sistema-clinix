@@ -38,11 +38,10 @@
 
     /* Marca */
     --accent: #2563eb;
-    --accent-2: #1d4ed8;
     --danger: #dc2626;
 
     /* Detalles */
-    --id-bg: #eff6ff;
+    --id-bg: color-mix(in srgb, var(--accent) 10%, white);
     --delete-bg: #fef2f2;
     --star-empty: #cbd5e1;
 
@@ -51,8 +50,8 @@
     --status-active-text: #047857;
     --status-treatment-bg: #fffbeb;
     --status-treatment-text: #b45309;
-    --status-waiting-bg: #eff6ff;
-    --status-waiting-text: #2563eb;
+    --status-waiting-bg: var(--id-bg);
+    --status-waiting-text: var(--accent);
     --status-admitted-bg: #fef2f2;
     --status-admitted-text: #b91c1c;
     --status-referred-bg: #f5f3ff;
@@ -76,10 +75,9 @@
     --text-sidebar: #ffffff;
 
     --accent: #4f8ff7;
-    --accent-2: #7db2ff;
     --danger: #f87171;
 
-    --id-bg: rgba(59, 130, 246, 0.15);
+    --id-bg: color-mix(in srgb, var(--accent) 18%, transparent);
     --delete-bg: rgba(248, 113, 113, 0.15);
     --star-empty: rgba(255, 255, 255, 0.25);
 
@@ -87,8 +85,8 @@
     --status-active-text: #34d399;
     --status-treatment-bg: rgba(245, 158, 11, 0.15);
     --status-treatment-text: #fbbf24;
-    --status-waiting-bg: rgba(59, 130, 246, 0.15);
-    --status-waiting-text: #60a5fa;
+    --status-waiting-bg: var(--id-bg);
+    --status-waiting-text: var(--accent);
     --status-admitted-bg: rgba(248, 113, 113, 0.15);
     --status-admitted-text: #f87171;
     --status-referred-bg: rgba(167, 139, 250, 0.15);
@@ -252,7 +250,7 @@
   background-color: var(--bg-sidebar);
 }
 .sidebar-rail-bg {
-  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 100%);
+  background-color: var(--accent);
 }
 .sidebar-border {
   border-color: rgba(255,255,255,0.1);
@@ -304,7 +302,7 @@
   background-color: var(--accent);
 }
 .btn-save-gradient:hover {
-  background-color: var(--accent-2);
+  filter: brightness(0.92);
 }
 
 body.modal-open {
