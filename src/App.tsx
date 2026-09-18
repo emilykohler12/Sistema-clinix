@@ -26,7 +26,7 @@ export default function App() {
         <Route path="/" element={<RequireAuth><Home /></RequireAuth>} />
         <Route path="/pacientes/:id" element={<RequireAuth><PatientDetail /></RequireAuth>} />
         <Route path="/archivados" element={<RequireAuth><Archived /></RequireAuth>} />
-        <Route path="/medicos" element={<RequireAuth><Doctors /></RequireAuth>} />
+        <Route path="/profesionales" element={<RequireAuth><Doctors /></RequireAuth>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 

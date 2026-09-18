@@ -51,7 +51,7 @@ export function FilterBar({ filters, onChange, doctors }: FilterBarProps) {
         onChange={e => onChange({ ...filters, assignedDoctor: e.target.value || undefined })}
         className={selectClass}
       >
-        <option value="">Médico (todos)</option>
+        <option value="">Profesional (todos)</option>
         {doctors.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
       </select>
 

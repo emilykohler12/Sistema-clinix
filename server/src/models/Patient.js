@@ -1,5 +1,32 @@
 import mongoose from 'mongoose'
 
+const subdocToJSON = {
+  virtuals: true,
+  transform: (_doc, ret) => {
+    ret.id = ret._id.toString()
+    delete ret._id
+    return ret
+  },
+}
+
+const attachmentSchema = new mongoose.Schema(
+  {
+    filename: { type: String, required: true },
+    url: { type: String, required: true },
+    mimeType: { type: String, default: '' },
+    uploadedAt: { type: Date, default: Date.now },
+  },
+  { _id: true, toJSON: subdocToJSON }
+)
+
+const noteEntrySchema = new mongoose.Schema(
+  {
+    text: { type: String, required: true, trim: true },
+    date: { type: Date, default: Date.now },
+  },
+  { _id: true, toJSON: subdocToJSON }
+)
+
 const patientSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
@@ -15,6 +42,14 @@ const patientSchema = new mongoose.Schema(
       default: '',
     },
     allergies: { type: String, trim: true, default: '' },
+    medication: { type: String, trim: true, default: '' },
+    weight: { type: Number },
+    height: { type: Number },
+    healthInsurance: { type: String, trim: true, default: '' },
+    emergencyContactName: { type: String, trim: true, default: '' },
+    emergencyContactPhone: { type: String, trim: true, default: '' },
+    tutorName: { type: String, trim: true, default: '' },
+    tutorPhone: { type: String, trim: true, default: '' },
     diagnosis: { type: String, trim: true, default: '' },
     assignedDoctor: { type: String, trim: true, default: '' },
     status: {
@@ -23,8 +58,11 @@ const patientSchema = new mongoose.Schema(
       default: 'activo',
     },
     notes: { type: String, trim: true, default: '' },
+    notesHistory: { type: [noteEntrySchema], default: [] },
+    attachments: { type: [attachmentSchema], default: [] },
     avatar: { type: String, trim: true, default: '' },
     archived: { type: Boolean, default: false },
+    lastVisitAt: { type: Date, default: Date.now },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },
   {

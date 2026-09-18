@@ -48,7 +48,7 @@ export function Archived() {
               Pacientes {archivedPatients.length > 0 && `(${archivedPatients.length})`}
             </button>
             <button className={tabClass(tab === 'medicos')} onClick={() => setTab('medicos')}>
-              Médicos {archivedDoctors.length > 0 && `(${archivedDoctors.length})`}
+              Profesionales {archivedDoctors.length > 0 && `(${archivedDoctors.length})`}
             </button>
           </div>
 
@@ -83,8 +83,8 @@ export function Archived() {
             <>
               {!archivedDoctorsLoading && archivedDoctors.length === 0 && (
                 <div className="text-center py-16 flex flex-col items-center gap-3">
-                  <p className="font-bold text-lg text-primary">No hay médicos archivados</p>
-                  <p className="text-sm text-secondary">Los médicos que elimines van a aparecer acá</p>
+                  <p className="font-bold text-lg text-primary">No hay profesionales archivados</p>
+                  <p className="text-sm text-secondary">Los profesionales que elimines van a aparecer acá</p>
                 </div>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">

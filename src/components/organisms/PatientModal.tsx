@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import type { BloodType, Gender, Patient, PatientStatus } from '../../types'
 import { ImageUpload } from '../molecules/ImageUpload'
 import { useClinicStore } from '../../store/useClinicStore'
+import { calculateAge } from '../../utils/formatDate'
 
 interface PatientModalProps {
   mode: 'add' | 'edit'
@@ -36,6 +37,14 @@ export function PatientModal({ mode, patient, onSave, onClose }: PatientModalPro
   const [address, setAddress] = useState(patient?.address ?? '')
   const [bloodType, setBloodType] = useState<BloodType>(patient?.bloodType ?? '')
   const [allergies, setAllergies] = useState(patient?.allergies ?? '')
+  const [medication, setMedication] = useState(patient?.medication ?? '')
+  const [weight, setWeight] = useState(patient?.weight?.toString() ?? '')
+  const [height, setHeight] = useState(patient?.height?.toString() ?? '')
+  const [healthInsurance, setHealthInsurance] = useState(patient?.healthInsurance ?? '')
+  const [emergencyContactName, setEmergencyContactName] = useState(patient?.emergencyContactName ?? '')
+  const [emergencyContactPhone, setEmergencyContactPhone] = useState(patient?.emergencyContactPhone ?? '')
+  const [tutorName, setTutorName] = useState(patient?.tutorName ?? '')
+  const [tutorPhone, setTutorPhone] = useState(patient?.tutorPhone ?? '')
   const [diagnosis, setDiagnosis] = useState(patient?.diagnosis ?? '')
   const [assignedDoctor, setAssignedDoctor] = useState(patient?.assignedDoctor ?? '')
   const [status, setStatus] = useState<PatientStatus>(patient?.status ?? 'activo')
@@ -43,6 +52,7 @@ export function PatientModal({ mode, patient, onSave, onClose }: PatientModalPro
   const [avatar, setAvatar] = useState(typeof patient?.avatar === 'string' ? patient.avatar : '')
   const [errors, setErrors] = useState<FormErrors>({})
   const { doctors, loadDoctors } = useClinicStore()
+  const isMinor = birthDate ? calculateAge(birthDate) < 18 : false
 
   useEffect(() => {
     document.body.classList.add('modal-open')
@@ -81,10 +91,20 @@ export function PatientModal({ mode, patient, onSave, onClose }: PatientModalPro
       address: address.trim(),
       bloodType,
       allergies: allergies.trim(),
+      medication: medication.trim(),
+      weight: weight ? Number(weight) : undefined,
+      height: height ? Number(height) : undefined,
+      healthInsurance: healthInsurance.trim(),
+      emergencyContactName: emergencyContactName.trim(),
+      emergencyContactPhone: emergencyContactPhone.trim(),
+      tutorName: tutorName.trim(),
+      tutorPhone: tutorPhone.trim(),
       diagnosis: diagnosis.trim(),
       assignedDoctor: assignedDoctor.trim(),
       status,
       notes: notes.trim(),
+      notesHistory: patient?.notesHistory ?? [],
+      attachments: patient?.attachments ?? [],
       avatar: avatar.trim(),
       createdAt: patient?.createdAt ?? new Date().toISOString(),
     }
@@ -181,7 +201,7 @@ export function PatientModal({ mode, patient, onSave, onClose }: PatientModalPro
             </div>
 
             <div>
-              <label className={labelClass}>Médico asignado</label>
+              <label className={labelClass}>Profesional asignado</label>
               <select value={assignedDoctor} onChange={e => setAssignedDoctor(e.target.value)} className={inputClass}>
                 <option value="">Sin asignar</option>
                 {doctors.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
@@ -195,9 +215,52 @@ export function PatientModal({ mode, patient, onSave, onClose }: PatientModalPro
               </select>
             </div>
 
+            <div>
+              <label className={labelClass}>Peso (kg)</label>
+              <input type="number" value={weight} onChange={e => setWeight(e.target.value)} className={inputClass} min="0" step="0.1" />
+            </div>
+
+            <div>
+              <label className={labelClass}>Altura (cm)</label>
+              <input type="number" value={height} onChange={e => setHeight(e.target.value)} className={inputClass} min="0" step="1" />
+            </div>
+
+            <div className="col-span-2">
+              <label className={labelClass}>Obra social</label>
+              <input type="text" value={healthInsurance} onChange={e => setHealthInsurance(e.target.value)} className={inputClass} placeholder="Particular si no tiene" />
+            </div>
+
+            <div>
+              <label className={labelClass}>Contacto de emergencia</label>
+              <input type="text" value={emergencyContactName} onChange={e => setEmergencyContactName(e.target.value)} className={inputClass} placeholder="Nombre" />
+            </div>
+
+            <div>
+              <label className={labelClass}>Teléfono de emergencia</label>
+              <input type="text" value={emergencyContactPhone} onChange={e => setEmergencyContactPhone(e.target.value)} className={inputClass} placeholder="+54 11 1234-5678" />
+            </div>
+
+            {isMinor && (
+              <>
+                <div>
+                  <label className={labelClass}>Tutor / responsable</label>
+                  <input type="text" value={tutorName} onChange={e => setTutorName(e.target.value)} className={inputClass} placeholder="Nombre del tutor" />
+                </div>
+                <div>
+                  <label className={labelClass}>Teléfono del tutor</label>
+                  <input type="text" value={tutorPhone} onChange={e => setTutorPhone(e.target.value)} className={inputClass} placeholder="+54 11 1234-5678" />
+                </div>
+              </>
+            )}
+
             <div className="col-span-2">
               <label className={labelClass}>Alergias</label>
               <input type="text" value={allergies} onChange={e => setAllergies(e.target.value)} className={inputClass} placeholder="Ninguna conocida" />
+            </div>
+
+            <div className="col-span-2">
+              <label className={labelClass}>Medicación actual</label>
+              <input type="text" value={medication} onChange={e => setMedication(e.target.value)} className={inputClass} placeholder="Ninguna" />
             </div>
 
             <div className="col-span-2">

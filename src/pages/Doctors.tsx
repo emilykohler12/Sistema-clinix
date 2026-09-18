@@ -44,11 +44,11 @@ export function Doctors() {
     setError(null)
     try {
       await addDoctor({ name, email, password, specialty })
-      addToast('Médico agregado correctamente', 'success')
+      addToast('Profesional agregado correctamente', 'success')
       setShowForm(false)
       resetForm()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo crear el médico')
+      setError(err instanceof Error ? err.message : 'No se pudo crear el profesional')
     } finally {
       setSaving(false)
     }
@@ -60,18 +60,18 @@ export function Doctors() {
     setDoctorToDelete(null)
     try {
       await archiveDoctor(id)
-      addToast('Médico movido a archivados', 'success')
+      addToast('Profesional movido a archivados', 'success')
     } catch {
-      addToast('No se pudo eliminar el médico', 'error')
+      addToast('No se pudo eliminar el profesional', 'error')
     }
   }
 
   async function handleToggleActive(doctor: Doctor) {
     try {
       await toggleDoctorActive(doctor.id, !doctor.active)
-      addToast(doctor.active ? 'Médico desactivado' : 'Médico activado', 'success')
+      addToast(doctor.active ? 'Profesional desactivado' : 'Profesional activado', 'success')
     } catch {
-      addToast('No se pudo cambiar el estado del médico', 'error')
+      addToast('No se pudo cambiar el estado del profesional', 'error')
     }
   }
 
@@ -85,7 +85,7 @@ export function Doctors() {
             <div className="flex items-center gap-3">
               {!sidebarOpen && <div className="w-10 h-10 flex-shrink-0" />}
               <div>
-                <h2 className="text-2xl font-bold text-primary">Médicos</h2>
+                <h2 className="text-2xl font-bold text-primary">Profesionales</h2>
                 <p className="text-sm text-secondary">Personal habilitado para usar el sistema</p>
               </div>
             </div>
@@ -94,14 +94,14 @@ export function Doctors() {
                 onClick={() => setShowForm(prev => !prev)}
                 className="btn-save-gradient px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:scale-105"
               >
-                {showForm ? 'Cancelar' : '+ Nuevo médico'}
+                {showForm ? 'Cancelar' : '+ Nuevo profesional'}
               </button>
             )}
           </div>
 
           {showForm && isAdmin && (
             <form onSubmit={handleSubmit} className="card rounded-2xl p-6 mb-6 flex flex-col gap-3 max-w-lg">
-              <ImageUpload value={avatar} onChange={setAvatar} name={name || 'Médico'} id="new-doctor" />
+              <ImageUpload value={avatar} onChange={setAvatar} name={name || 'Profesional'} id="new-doctor" />
               <div>
                 <label className="text-sm mb-1 block text-secondary">Nombre completo *</label>
                 <input value={name} onChange={e => setName(e.target.value)} required className="modal-input w-full border rounded-lg px-3 py-2 text-sm focus:outline-none" placeholder="Dra. Ana López" />
@@ -120,7 +120,7 @@ export function Doctors() {
               </div>
               {error && <p className="text-xs text-error">{error}</p>}
               <button type="submit" disabled={saving} className="btn-save-gradient px-4 py-2.5 text-sm font-medium text-white rounded-lg transition-colors hover:opacity-90 disabled:opacity-60">
-                {saving ? 'Guardando...' : 'Crear médico'}
+                {saving ? 'Guardando...' : 'Crear profesional'}
               </button>
             </form>
           )}
@@ -135,7 +135,7 @@ export function Doctors() {
                   <div className="flex items-center gap-1.5 flex-wrap mt-1">
                     {d.specialty && <span className="text-xs px-2 py-0.5 rounded-full badge-id">{d.specialty}</span>}
                     <span className="text-xs px-2 py-0.5 rounded-full badge-status-discharged">
-                      {d.role === 'admin' ? 'Administrador' : 'Médico'}
+                      {d.role === 'admin' ? 'Administrador' : 'Profesional'}
                     </span>
                     {!d.active && (
                       <span className="text-xs px-2 py-0.5 rounded-full badge-status-admitted">Desactivado</span>
@@ -160,7 +160,7 @@ export function Doctors() {
                 )}
               </div>
             ))}
-            {doctorsLoading && <p className="text-secondary">Cargando médicos...</p>}
+            {doctorsLoading && <p className="text-secondary">Cargando profesionales...</p>}
           </div>
         </div>
       </div>

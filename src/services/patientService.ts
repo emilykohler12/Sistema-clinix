@@ -66,3 +66,36 @@ export async function restorePatient(id: string): Promise<Patient> {
 export async function deletePatientPermanently(id: string): Promise<void> {
   await apiFetch<void>(`/patients/${id}?permanent=true`, { method: 'DELETE' })
 }
+
+export async function addPatientNote(id: string, text: string): Promise<Patient> {
+  return apiFetch<Patient>(`/patients/${id}/notes`, {
+    method: 'POST',
+    body: JSON.stringify({ text }),
+  })
+}
+
+export async function deletePatientNote(id: string, noteId: string): Promise<Patient> {
+  return apiFetch<Patient>(`/patients/${id}/notes/${noteId}`, { method: 'DELETE' })
+}
+
+export async function uploadPatientAttachment(id: string, file: File): Promise<Patient> {
+  const BASE_URL = import.meta.env.VITE_API_URL
+  const token = localStorage.getItem('clinix_token')
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const response = await fetch(`${BASE_URL}/patients/${id}/attachments`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    body: formData,
+  })
+  if (!response.ok) {
+    const body = await response.json().catch(() => null)
+    throw new Error(body?.message ?? 'No se pudo subir el adjunto')
+  }
+  return response.json()
+}
+
+export async function deletePatientAttachment(id: string, attachmentId: string): Promise<Patient> {
+  return apiFetch<Patient>(`/patients/${id}/attachments/${attachmentId}`, { method: 'DELETE' })
+}

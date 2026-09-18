@@ -15,10 +15,18 @@ const mockPatient: Patient = {
   address: 'Av. Siempre Viva 742',
   bloodType: 'O+',
   allergies: '',
+  medication: '',
+  healthInsurance: '',
+  emergencyContactName: '',
+  emergencyContactPhone: '',
+  tutorName: '',
+  tutorPhone: '',
   diagnosis: 'Paciente con historial de hipertensión arterial. Requiere seguimiento mensual y control de presión.',
   assignedDoctor: 'Dra. Lucía Fernández',
   status: 'en_tratamiento',
   notes: '',
+  notesHistory: [],
+  attachments: [],
   createdAt: '2023-03-06T10:24:04.110Z',
 }
 

@@ -69,7 +69,7 @@ export function Login() {
         </form>
 
         <p className="text-xs text-muted mt-4 text-center">
-          ¿Sos médico y no tenés cuenta? <Link to="/register" className="link-accent font-medium">Registrate</Link>
+          ¿Sos profesional y no tenés cuenta? <Link to="/register" className="link-accent font-medium">Registrate</Link>
         </p>
 
         <p className="text-xs text-muted mt-3 text-center">

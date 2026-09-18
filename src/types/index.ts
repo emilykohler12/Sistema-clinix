@@ -8,6 +8,20 @@ export type PatientStatus =
   | 'derivado'
   | 'de_alta'
 
+export interface Attachment {
+  id: string
+  filename: string
+  url: string
+  mimeType: string
+  uploadedAt: string
+}
+
+export interface NoteEntry {
+  id: string
+  text: string
+  date: string
+}
+
 export interface Patient {
   id: string
   name: string
@@ -19,12 +33,23 @@ export interface Patient {
   address: string
   bloodType: BloodType
   allergies: string
+  medication: string
+  weight?: number
+  height?: number
+  healthInsurance: string
+  emergencyContactName: string
+  emergencyContactPhone: string
+  tutorName: string
+  tutorPhone: string
   diagnosis: string
   assignedDoctor: string
   status: PatientStatus
   notes: string
+  notesHistory: NoteEntry[]
+  attachments: Attachment[]
   avatar: string | object
   archived?: boolean
+  lastVisitAt?: string
   createdAt: string
 }
 

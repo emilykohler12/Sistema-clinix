@@ -39,8 +39,8 @@ export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
         <NavLink to="/archivados" onClick={onClose} className={navLinkClass}>
           Archivados
         </NavLink>
-        <NavLink to="/medicos" onClick={onClose} className={navLinkClass}>
-          Médicos
+        <NavLink to="/profesionales" onClick={onClose} className={navLinkClass}>
+          Profesionales
         </NavLink>
       </nav>
 
@@ -69,20 +69,11 @@ export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
 
   return (
     <>
-      {/* Botón hamburguesa — solo visible cuando sidebar cerrado, solo en mobile */}
+      {/* Botón hamburguesa — solo visible cuando el sidebar está cerrado */}
       {!sidebarOpen && (
         <button
-          className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg sidebar-bg"
-          onClick={() => setSidebarOpen(true)}
-        >
-          ☰
-        </button>
-      )}
-
-      {/* Botón abrir en desktop — solo visible cuando sidebar cerrado */}
-      {!sidebarOpen && (
-        <button
-          className="hidden lg:flex fixed top-6 left-6 z-50 w-10 h-10 rounded-xl items-center justify-center text-white shadow-lg sidebar-bg"
+          className="fixed top-4 left-4 z-50 w-10 h-10 rounded-xl inline-flex items-center justify-center text-white shadow-md sidebar-bg border-0"
+          style={{ lineHeight: 1 }}
           onClick={() => setSidebarOpen(true)}
         >
           ☰

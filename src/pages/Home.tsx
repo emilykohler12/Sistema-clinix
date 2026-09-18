@@ -30,7 +30,7 @@ export function Home() {
   const [removingId, setRemovingId] = useState<string | null>(null)
   const [showingFavoritesOnly, setShowingFavoritesOnly] = useState(false)
   const [isSearchMode, setIsSearchMode] = useState(false)
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null)
 
   const debouncedSearch = useDebounce(search, 300)
   const bottomRef = useRef<HTMLDivElement | null>(null)
@@ -268,7 +268,7 @@ export function Home() {
                   onToggleFavorite={toggleFavorite}
                   onEdit={openEdit}
                   onDelete={setPatientToDelete}
-                  onViewDetail={setSelectedPatient}
+                  onViewDetail={(p) => setSelectedPatientId(p.id)}
                   viewMode={viewMode}
                 />
               ))}
@@ -287,10 +287,10 @@ export function Home() {
         />
       )}
 
-      {selectedPatient && (
+      {selectedPatientId && patients.find(p => p.id === selectedPatientId) && (
         <PatientDetailModal
-          patient={selectedPatient}
-          onClose={() => setSelectedPatient(null)}
+          patient={patients.find(p => p.id === selectedPatientId)!}
+          onClose={() => setSelectedPatientId(null)}
         />
       )}
     </div>

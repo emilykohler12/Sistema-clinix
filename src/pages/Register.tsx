@@ -43,7 +43,7 @@ export function Register() {
         <div className="flex flex-col items-center mb-6">
           <img src="/logo.jpg" alt="Clinix" className="w-14 h-14 object-contain rounded-xl mb-3" />
           <h1 className="text-xl font-bold text-primary">Crear cuenta</h1>
-          <p className="text-sm text-secondary">Registro de personal médico</p>
+          <p className="text-sm text-secondary">Registro de profesionales</p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">

@@ -21,6 +21,8 @@
   }
 
   :root {
+    color-scheme: light;
+
     /* Fondo y superficies */
     --bg-page: #f8fafc;
     --bg-sidebar: #111827;
@@ -60,10 +62,12 @@
   }
 
   html.dark {
-    --bg-page: #0b1220;
-    --bg-sidebar: #05080f;
-    --bg-card: #131b2c;
-    --bg-card-border: rgba(255, 255, 255, 0.1);
+    color-scheme: dark;
+
+    --bg-page: #0a0e17;
+    --bg-sidebar: #05070d;
+    --bg-card: #161f30;
+    --bg-card-border: rgba(255, 255, 255, 0.09);
     --bg-card-divider: rgba(255, 255, 255, 0.07);
 
     --text-primary: #f1f5f9;
@@ -71,8 +75,8 @@
     --text-muted: #94a3b8;
     --text-sidebar: #ffffff;
 
-    --accent: #3b82f6;
-    --accent-2: #60a5fa;
+    --accent: #4f8ff7;
+    --accent-2: #7db2ff;
     --danger: #f87171;
 
     --id-bg: rgba(59, 130, 246, 0.15);

@@ -9,6 +9,10 @@ import {
   archivePatient,
   restorePatient as restorePatientApi,
   deletePatientPermanently,
+  addPatientNote,
+  deletePatientNote,
+  uploadPatientAttachment,
+  deletePatientAttachment,
 } from '../services/patientService'
 import { login as loginApi, register as registerApi, logout as logoutApi, getCurrentUser } from '../services/authService'
 import { getUsers, createUser, setUserActive, archiveUser, restoreUser, type NewDoctorInput } from '../services/userService'
@@ -36,6 +40,10 @@ interface ClinicStore {
   addPatient: (patient: Omit<Patient, 'id' | 'createdAt'>) => Promise<void>
   updatePatient: (patient: Patient) => Promise<void>
   deletePatient: (id: string) => Promise<void>
+  addNote: (id: string, text: string) => Promise<void>
+  removeNote: (id: string, noteId: string) => Promise<void>
+  uploadAttachment: (id: string, file: File) => Promise<void>
+  removeAttachment: (id: string, attachmentId: string) => Promise<void>
 
   archivedPatients: Patient[]
   archivedLoading: boolean
@@ -213,6 +221,38 @@ export const useClinicStore = create<ClinicStore>()(
         }))
       },
 
+      addNote: async (id, text) => {
+        const updated = await addPatientNote(id, text)
+        set(state => ({
+          patients: state.patients.map(p => p.id === id ? updated : p),
+          patientDetail: state.patientDetail?.id === id ? updated : state.patientDetail,
+        }))
+      },
+
+      removeNote: async (id, noteId) => {
+        const updated = await deletePatientNote(id, noteId)
+        set(state => ({
+          patients: state.patients.map(p => p.id === id ? updated : p),
+          patientDetail: state.patientDetail?.id === id ? updated : state.patientDetail,
+        }))
+      },
+
+      uploadAttachment: async (id, file) => {
+        const updated = await uploadPatientAttachment(id, file)
+        set(state => ({
+          patients: state.patients.map(p => p.id === id ? updated : p),
+          patientDetail: state.patientDetail?.id === id ? updated : state.patientDetail,
+        }))
+      },
+
+      removeAttachment: async (id, attachmentId) => {
+        const updated = await deletePatientAttachment(id, attachmentId)
+        set(state => ({
+          patients: state.patients.map(p => p.id === id ? updated : p),
+          patientDetail: state.patientDetail?.id === id ? updated : state.patientDetail,
+        }))
+      },
+
       archivedPatients: [],
       archivedLoading: false,
 
@@ -249,7 +289,7 @@ export const useClinicStore = create<ClinicStore>()(
           const doctors = await getUsers()
           set({ doctors })
         } catch {
-          get().addToast('No se pudo cargar la lista de médicos', 'error')
+          get().addToast('No se pudo cargar la lista de profesionales', 'error')
         } finally {
           set({ doctorsLoading: false })
         }
@@ -279,7 +319,7 @@ export const useClinicStore = create<ClinicStore>()(
           const archivedDoctors = await getUsers(true)
           set({ archivedDoctors })
         } catch {
-          get().addToast('No se pudieron cargar los médicos archivados', 'error')
+          get().addToast('No se pudieron cargar los profesionales archivados', 'error')
         } finally {
           set({ archivedDoctorsLoading: false })
         }
@@ -288,7 +328,7 @@ export const useClinicStore = create<ClinicStore>()(
       restoreDoctor: async (id) => {
         await restoreUser(id)
         set(state => ({ archivedDoctors: state.archivedDoctors.filter(d => d.id !== id) }))
-        get().addToast('Médico restaurado', 'success')
+        get().addToast('Profesional restaurado', 'success')
       },
 
       favorites: [],
@@ -325,14 +365,10 @@ export const useClinicStore = create<ClinicStore>()(
         const { modalMode, addPatient, updatePatient, addToast, closeModal } = get()
         try {
           if (modalMode === 'add') {
-            const {
-              name, documentId, birthDate, gender, phone, email, address,
-              bloodType, allergies, diagnosis, assignedDoctor, status, notes, avatar,
-            } = patient
-            await addPatient({
-              name, documentId, birthDate, gender, phone, email, address,
-              bloodType, allergies, diagnosis, assignedDoctor, status, notes, avatar,
-            })
+            const rest = { ...patient } as Record<string, unknown>
+            delete rest.id
+            delete rest.createdAt
+            await addPatient(rest as Omit<Patient, 'id' | 'createdAt'>)
             addToast('Paciente agregado correctamente', 'success')
           } else {
             await updatePatient(patient)
