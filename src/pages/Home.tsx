@@ -15,7 +15,7 @@ import type { Patient, SortOption, ViewMode } from '../types'
 
 export function Home() {
   const {
-    patients, loading, error, hasMore, loadMore, searchPatients, resetAndLoad,
+    patients, totalCount, loading, error, hasMore, loadMore, searchPatients, resetAndLoad,
     deletePatient, isFavorite, toggleFavorite, favorites,
     addToast, openEdit, openAdd,
     dateFilter, setDateFilter, isFiltered, sidebarOpen,
@@ -177,7 +177,7 @@ export function Home() {
           </div>
 
           <StatsBar
-            total={patients.length}
+            total={totalCount}
             favorites={favorites.length}
             showingFavoritesOnly={showingFavoritesOnly}
             onSelectAll={() => setShowingFavoritesOnly(false)}
@@ -221,7 +221,7 @@ export function Home() {
             <section>
               <h3 className="font-bold mb-3 flex items-center gap-2 text-primary">
                 {isSearchMode
-                  ? `${patients.length} resultado${patients.length !== 1 ? 's' : ''} para "${debouncedSearch}"`
+                  ? `${totalCount} resultado${totalCount !== 1 ? 's' : ''} para "${debouncedSearch}"`
                   : isFiltered
                   ? `Pacientes de ${dateFilter}`
                   : 'Todos los pacientes'}

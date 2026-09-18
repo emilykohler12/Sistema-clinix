@@ -17,6 +17,7 @@ const LIMIT = 10
 
 interface ClinicStore {
   patients: Patient[]
+  totalCount: number
   page: number
   loading: boolean
   error: string | null
@@ -82,6 +83,7 @@ export const useClinicStore = create<ClinicStore>()(
   persist(
     (set, get) => ({
       patients: [],
+      totalCount: 0,
       page: 1,
       loading: false,
       error: null,
@@ -111,7 +113,7 @@ export const useClinicStore = create<ClinicStore>()(
 
       logout: () => {
         logoutApi()
-        set({ authUser: null, patients: [], page: 1, hasMore: true })
+        set({ authUser: null, patients: [], page: 1, hasMore: true, totalCount: 0 })
       },
 
       loadMore: async () => {
@@ -124,6 +126,7 @@ export const useClinicStore = create<ClinicStore>()(
             patients: [...state.patients, ...data.items],
             hasMore: data.hasMore,
             page: page + 1,
+            totalCount: data.total,
           }))
         } catch {
           set({ error: 'No se pudieron cargar los pacientes. Intentá de nuevo.' })
@@ -133,7 +136,7 @@ export const useClinicStore = create<ClinicStore>()(
       },
 
       resetAndLoad: async () => {
-        set({ patients: [], page: 1, hasMore: true, isFiltered: false, error: null, searchTerm: '', dateFilter: 'all', filters: {} })
+        set({ patients: [], page: 1, hasMore: true, isFiltered: false, error: null, searchTerm: '', dateFilter: 'all', filters: {}, totalCount: 0 })
         await get().loadMore()
       },
 
@@ -142,7 +145,7 @@ export const useClinicStore = create<ClinicStore>()(
         set({ loading: true, error: null, searchTerm: term, isFiltered: true })
         try {
           const data = await getPatients(1, 100, { search: term, filters })
-          set({ patients: data.items, hasMore: false })
+          set({ patients: data.items, hasMore: false, totalCount: data.total })
         } catch {
           set({ error: 'Error al buscar pacientes.' })
         } finally {
@@ -159,7 +162,7 @@ export const useClinicStore = create<ClinicStore>()(
         set({ loading: true, error: null, dateFilter: year, isFiltered: true })
         try {
           const data = await getPatients(1, 100, { year: year === 'all' ? undefined : year, search: searchTerm, filters })
-          set({ patients: data.items, hasMore: false })
+          set({ patients: data.items, hasMore: false, totalCount: data.total })
         } catch {
           set({ error: 'No se pudieron cargar los pacientes de ese año.' })
         } finally {
@@ -177,7 +180,7 @@ export const useClinicStore = create<ClinicStore>()(
             search: searchTerm,
             filters,
           })
-          set({ patients: data.items, hasMore: false })
+          set({ patients: data.items, hasMore: false, totalCount: data.total })
         } catch {
           set({ error: 'No se pudieron aplicar los filtros.' })
         } finally {
@@ -187,7 +190,7 @@ export const useClinicStore = create<ClinicStore>()(
 
       addPatient: async (patient) => {
         const created = await createPatient(patient)
-        set(state => ({ patients: [created, ...state.patients] }))
+        set(state => ({ patients: [created, ...state.patients], totalCount: state.totalCount + 1 }))
       },
 
       updatePatient: async (patient) => {
@@ -200,6 +203,7 @@ export const useClinicStore = create<ClinicStore>()(
         set(state => ({
           patients: state.patients.filter(p => p.id !== id),
           favorites: state.favorites.filter(f => f !== id),
+          totalCount: Math.max(0, state.totalCount - 1),
         }))
       },
 
