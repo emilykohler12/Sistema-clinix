@@ -30,3 +30,6 @@ storybook-static
 
 # Archivos subidos por usuarios (backend)
 server/uploads/
+
+# Configuración local del editor/asistente de desarrollo
+.claude/
