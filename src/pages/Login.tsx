@@ -75,10 +75,6 @@ export function Login() {
         <p className="text-xs text-muted mt-3 text-center">
           ¿Sos profesional y no tenés cuenta? <Link to="/register" className="link-accent font-medium">Registrate</Link>
         </p>
-
-        <p className="text-xs text-muted mt-3 text-center">
-          Demo: admin@clinix.com / Admin1234
-        </p>
       </div>
     </div>
   )

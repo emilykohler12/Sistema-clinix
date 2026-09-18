@@ -27,6 +27,13 @@ export async function setUserActive(id: string, active: boolean): Promise<Doctor
   })
 }
 
+export async function setUserRole(id: string, role: UserRole): Promise<Doctor> {
+  return apiFetch<Doctor>(`/users/${id}/role`, {
+    method: 'PATCH',
+    body: JSON.stringify({ role }),
+  })
+}
+
 export async function archiveUser(id: string): Promise<Doctor> {
   return apiFetch<Doctor>(`/users/${id}`, { method: 'DELETE' })
 }

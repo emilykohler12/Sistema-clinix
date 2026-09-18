@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Appointment, AuthUser, CancelReason, Doctor, Patient, PatientFilters, Toast, ToastType } from '../types'
+import type { Appointment, AuthUser, CancelReason, Doctor, Patient, PatientFilters, Toast, ToastType, UserRole } from '../types'
 import {
   getPatients,
   getPatientById,
@@ -15,7 +15,7 @@ import {
   deletePatientAttachment,
 } from '../services/patientService'
 import { login as loginApi, register as registerApi, logout as logoutApi, getCurrentUser } from '../services/authService'
-import { getUsers, createUser, setUserActive, archiveUser, restoreUser, type NewDoctorInput } from '../services/userService'
+import { getUsers, createUser, setUserActive, setUserRole, archiveUser, restoreUser, type NewDoctorInput } from '../services/userService'
 import {
   getAppointments,
   createAppointment as createAppointmentApi,
@@ -65,6 +65,7 @@ interface ClinicStore {
   loadDoctors: () => Promise<void>
   addDoctor: (input: NewDoctorInput) => Promise<void>
   toggleDoctorActive: (id: string, active: boolean) => Promise<void>
+  changeDoctorRole: (id: string, role: UserRole) => Promise<void>
   archiveDoctor: (id: string) => Promise<void>
 
   archivedDoctors: Doctor[]
@@ -320,6 +321,11 @@ export const useClinicStore = create<ClinicStore>()(
 
       toggleDoctorActive: async (id, active) => {
         const updated = await setUserActive(id, active)
+        set(state => ({ doctors: state.doctors.map(d => d.id === id ? updated : d) }))
+      },
+
+      changeDoctorRole: async (id, role) => {
+        const updated = await setUserRole(id, role)
         set(state => ({ doctors: state.doctors.map(d => d.id === id ? updated : d) }))
       },
 

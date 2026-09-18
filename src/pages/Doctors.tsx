@@ -4,10 +4,10 @@ import { Avatar } from '../components/atoms/Avatar'
 import { ImageUpload } from '../components/molecules/ImageUpload'
 import { ConfirmToast } from '../components/molecules/ConfirmToast'
 import { useClinicStore } from '../store/useClinicStore'
-import type { Doctor } from '../types'
+import type { Doctor, UserRole } from '../types'
 
 export function Doctors() {
-  const { doctors, doctorsLoading, loadDoctors, addDoctor, archiveDoctor, toggleDoctorActive, authUser, addToast } = useClinicStore()
+  const { doctors, doctorsLoading, loadDoctors, addDoctor, archiveDoctor, toggleDoctorActive, changeDoctorRole, authUser, addToast } = useClinicStore()
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('clinix_theme') === 'dark')
   const [showForm, setShowForm] = useState(false)
   const [name, setName] = useState('')
@@ -75,6 +75,16 @@ export function Doctors() {
     }
   }
 
+  async function handleRoleChange(doctor: Doctor, role: UserRole) {
+    if (role === doctor.role) return
+    try {
+      await changeDoctorRole(doctor.id, role)
+      addToast(role === 'admin' ? `${doctor.name} ahora es administrador` : `${doctor.name} ahora es profesional`, 'success')
+    } catch {
+      addToast('No se pudo cambiar el rol', 'error')
+    }
+  }
+
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: 'var(--bg-page)' }}>
       <Sidebar darkMode={darkMode} onToggleDarkMode={() => setDarkMode(prev => !prev)} />
@@ -133,9 +143,20 @@ export function Doctors() {
                   <p className="text-xs truncate text-muted">{d.email}</p>
                   <div className="flex items-center gap-1.5 flex-wrap mt-1">
                     {d.specialty && <span className="text-xs px-2 py-0.5 rounded-full badge-id">{d.specialty}</span>}
-                    <span className="text-xs px-2 py-0.5 rounded-full badge-status-discharged">
-                      {d.role === 'admin' ? 'Administrador' : 'Profesional'}
-                    </span>
+                    {isAdmin && d.id !== authUser?.id ? (
+                      <select
+                        value={d.role}
+                        onChange={e => handleRoleChange(d, e.target.value as UserRole)}
+                        className="text-xs px-2 py-0.5 rounded-full badge-status-discharged focus:outline-none"
+                      >
+                        <option value="medico">Profesional</option>
+                        <option value="admin">Administrador</option>
+                      </select>
+                    ) : (
+                      <span className="text-xs px-2 py-0.5 rounded-full badge-status-discharged">
+                        {d.role === 'admin' ? 'Administrador' : 'Profesional'}
+                      </span>
+                    )}
                     {!d.active && (
                       <span className="text-xs px-2 py-0.5 rounded-full badge-status-admitted">Desactivado</span>
                     )}

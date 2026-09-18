@@ -1,32 +1,51 @@
-const RESEND_API_URL = 'https://api.resend.com/emails'
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email'
 
 export async function sendEmail({ to, subject, html }) {
-  const apiKey = process.env.RESEND_API_KEY
+  const apiKey = process.env.BREVO_API_KEY
   if (!apiKey) {
-    console.warn('[email] RESEND_API_KEY no configurada, no se envió el email a', to)
+    console.warn('[email] BREVO_API_KEY no configurada, no se envió el email a', to)
     return { skipped: true }
   }
 
-  const response = await fetch(RESEND_API_URL, {
+  const response = await fetch(BREVO_API_URL, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      'api-key': apiKey,
       'Content-Type': 'application/json',
+      Accept: 'application/json',
     },
     body: JSON.stringify({
-      from: process.env.RESEND_FROM || 'Clinix <onboarding@resend.dev>',
-      to: [to],
+      sender: {
+        name: process.env.BREVO_FROM_NAME || 'Clinix',
+        email: process.env.BREVO_FROM_EMAIL || 'onboarding@clinix.com',
+      },
+      to: [{ email: to }],
       subject,
-      html,
+      htmlContent: html,
     }),
   })
 
   if (!response.ok) {
     const body = await response.text()
-    throw new Error(`Resend error (${response.status}): ${body}`)
+    throw new Error(`Brevo error (${response.status}): ${body}`)
   }
 
   return response.json()
+}
+
+export function passwordResetCodeEmail({ name, code }) {
+  return {
+    subject: 'Tu código para recuperar la contraseña — Clinix',
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+        <h2>Recuperar contraseña</h2>
+        <p>Hola ${name},</p>
+        <p>Usá este código para restablecer tu contraseña. Vence en 10 minutos:</p>
+        <p style="font-size: 32px; font-weight: bold; letter-spacing: 6px;">${code}</p>
+        <p>Si no pediste este cambio, podés ignorar este mensaje.</p>
+      </div>
+    `,
+  }
 }
 
 export function appointmentCancelEmail({ patientName, professionalName, date, reason, newDate }) {

@@ -67,6 +67,20 @@ usersRouter.patch('/:id/active', requireAdmin, async (req, res) => {
   res.json(user)
 })
 
+// Cambia el rol de un profesional (medico <-> admin)
+usersRouter.patch('/:id/role', requireAdmin, async (req, res) => {
+  const { role } = req.body
+  if (!['admin', 'medico'].includes(role)) {
+    return res.status(400).json({ message: 'Rol inválido' })
+  }
+  if (req.params.id === req.user.sub) {
+    return res.status(400).json({ message: 'No podés cambiar tu propio rol' })
+  }
+  const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true })
+  if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
+  res.json(user)
+})
+
 // Archiva la cuenta (soft delete) en vez de borrarla — se puede restaurar
 usersRouter.delete('/:id', requireAdmin, async (req, res) => {
   if (req.params.id === req.user.sub) {
