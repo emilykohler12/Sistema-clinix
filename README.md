@@ -1,23 +1,23 @@
 # 🏥 Clinix — Sistema de Gestión Clínica
 
-Aplicación full-stack para la gestión de pacientes de un centro de salud: historia clínica básica, búsqueda y filtros, y acceso protegido por login para el personal médico/administrativo.
-
-Proyecto personal desarrollado para portfolio, con frontend, backend y base de datos propios (sin depender de APIs de terceros).
+Aplicación full-stack para la gestión integral de un centro de salud: pacientes, profesionales, turnos con calendario y notificaciones por email, todo con autenticación y persistencia en base de datos propia.
 
 ---
 
 ## ✨ Features
 
-- 🔐 Login con JWT (roles admin / médico)
-- 📋 Listado de pacientes con historia clínica básica (documento, obra social, diagnóstico, médico asignado, estado)
-- 🔍 Búsqueda en tiempo real con debounce (300ms) y filtro por año de registro
-- ➕ Alta, edición y baja de pacientes con validación de formulario — persistidos en MongoDB
-- ⭐ Favoritos, ⊞ vista grilla/lista, 🔤 orden A→Z / Z→A
-- 💀 Skeletons con animación shimmer durante la carga, ♾️ infinite scroll con paginación real del backend
-- 🌙 Dark mode con persistencia en localStorage
-- 📱 Diseño responsive (mobile, tablet, desktop)
-- 🔔 Notificaciones toast de éxito y error
-- 📖 Documentación de componentes con Storybook
+- 🔐 Autenticación con JWT (roles admin / médico), registro de profesionales y recuperación de contraseña por código enviado al email
+- 📋 Historia clínica completa por paciente: datos personales, obra social, contacto de emergencia, tutor (menores), alergias, medicación, grupo sanguíneo, adjuntos (PDF/imágenes) y notas de consulta con historial
+- 🔍 Búsqueda en tiempo real (nombre, DNI, diagnóstico) y filtros combinables (género, estado, profesional, grupo sanguíneo, año de registro)
+- 🗂️ Archivado y restauración de pacientes y profesionales (baja reversible, sin borrado definitivo)
+- 👩‍⚕️ Gestión de profesionales: alta, activar/desactivar acceso al sistema, especialidad
+- 📅 Calendario de turnos con vistas por día, semana, mes y año; duración y precio configurables, tipo de pago (particular / obra social)
+- ✅ Estados de turno (programado, confirmado, completado, cancelado, no asistió) con aviso automático por email al paciente cuando un turno se cancela o reprograma
+- ⏰ Recordatorio automático por email 12 horas antes de cada turno
+- 🖨️ Exportación / impresión de la ficha del paciente
+- 📶 Indicador de conexión: avisa en pantalla cuando el dispositivo pierde internet
+- 🌙 Dark mode con persistencia, diseño responsive (mobile, tablet, desktop)
+- 💀 Skeletons, infinite scroll con paginación real del backend, notificaciones toast
 
 ---
 
@@ -41,7 +41,9 @@ Proyecto personal desarrollado para portfolio, con frontend, backend y base de d
 |---|---|
 | Node.js + Express | API REST |
 | MongoDB + Mongoose | Base de datos y modelado |
-| JWT + bcrypt | Autenticación y hash de contraseñas |
+| JWT + bcrypt | Autenticación, hash de contraseñas y códigos de recuperación |
+| Multer | Carga de avatares y adjuntos clínicos |
+| Resend | Envío de emails (recordatorios, avisos de turno y recuperación de contraseña) |
 
 > No se utilizaron librerías de componentes UI (Material UI, Bootstrap, Chakra, etc.) en el frontend.
 
@@ -53,24 +55,26 @@ Proyecto personal desarrollado para portfolio, con frontend, backend y base de d
 Sistema-clinix/
 ├── src/                        # Frontend (React + Vite)
 │   ├── components/
-│   │   ├── atoms/              # Avatar, ProgressBar, Skeleton
-│   │   ├── molecules/          # DateFilter, SearchBar, StatCard
-│   │   └── organisms/          # ConfirmModal, PatientCard, PatientModal,
-│   │                           # PatientDetailModal, PatientInfoGrid, Sidebar, StatsBar, Toast
+│   │   ├── atoms/              # Avatar, ProgressBar, Skeleton, OfflineBanner, icons
+│   │   ├── molecules/          # DateFilter, SearchBar, FilterBar, ImageUpload
+│   │   └── organisms/          # PatientCard, PatientModal, PatientDetailModal,
+│   │                           # PatientInfoGrid, AppointmentModal, Sidebar, Toast
 │   ├── hooks/                  # useDebounce
-│   ├── pages/                  # Home, Login, PatientDetail
-│   ├── services/               # httpClient, authService, patientService
+│   ├── pages/                  # Home, Login, Register, ForgotPassword, PatientDetail,
+│   │                           # Calendar, Archived, Doctors
+│   ├── services/               # httpClient, authService, patientService,
+│   │                           # appointmentService, userService
 │   ├── store/                  # useClinicStore (Zustand)
-│   ├── test/                   # Tests unitarios
 │   ├── types/                  # Interfaces TypeScript
-│   └── utils/                  # avatarHelper, formatDate
+│   └── utils/                  # avatarHelper, formatDate, calendarUtils
 │
 └── server/                     # Backend (Node + Express + MongoDB)
     ├── src/
     │   ├── config/db.js        # Conexión a MongoDB
     │   ├── middleware/auth.js  # Verificación de JWT
-    │   ├── models/             # User, Patient (Mongoose)
-    │   ├── routes/             # auth, patients
+    │   ├── models/             # User, Patient, Appointment (Mongoose)
+    │   ├── routes/             # auth, patients, users, appointments, uploads
+    │   ├── services/           # emailService, reminderJob
     │   ├── index.js            # Punto de entrada del servidor
     │   └── seed.js             # Crea el usuario admin y pacientes de ejemplo
     └── .env.example
@@ -87,9 +91,9 @@ Necesitás una instancia de MongoDB corriendo (local, Docker o [Atlas free tier]
 ```bash
 cd server
 npm install
-cp .env.example .env      # Ajustá MONGODB_URI si no usás el default local
-npm run seed               # Crea el usuario admin y pacientes de ejemplo
-npm run dev                 # Levanta la API en http://localhost:4000
+cp .env.example .env
+npm run seed        # Crea el usuario admin y pacientes de ejemplo
+npm run dev          # Levanta la API en http://localhost:4000
 ```
 
 Credenciales del usuario admin creado por el seed (configurables en `.env`):
@@ -99,11 +103,13 @@ Email:     admin@clinix.com
 Password:  Admin1234
 ```
 
+El envío de emails (recordatorios de turno, avisos de cancelación/reprogramación y códigos de recuperación de contraseña) usa [Resend](https://resend.com); sin una `RESEND_API_KEY` configurada, la app funciona igual pero esos emails no se envían.
+
 ### 2. Frontend
 
 ```bash
 npm install
-npm run dev                 # http://localhost:5173
+npm run dev          # http://localhost:5173
 ```
 
 El frontend espera la API en `VITE_API_URL` (ver `.env`), por defecto `http://localhost:4000/api`.
@@ -111,27 +117,33 @@ El frontend espera la API en `VITE_API_URL` (ver `.env`), por defecto `http://lo
 ### 3. Otros comandos
 
 ```bash
-npm run storybook           # Documentación de componentes
-npm run test:run            # Tests unitarios
-npm run build                # Build de producción
+npm run storybook     # Documentación de componentes
+npm run test:run      # Tests unitarios
+npm run build          # Build de producción
 ```
 
 ---
 
 ## 🌐 API
 
-Todos los endpoints de pacientes requieren un header `Authorization: Bearer <token>` obtenido en `/api/auth/login`.
+Todos los endpoints (salvo login, registro y recuperación de contraseña) requieren un header `Authorization: Bearer <token>` obtenido en `/api/auth/login`.
 
 | Método | Endpoint | Descripción |
 |---|---|---|
 | POST | `/api/auth/login` | Login, devuelve token JWT |
-| GET | `/api/auth/me` | Usuario autenticado |
-| GET | `/api/patients` | Lista paginada (`page`, `limit`, `search`, `year`) |
-| GET | `/api/patients/years` | Años disponibles para filtrar |
-| GET | `/api/patients/:id` | Detalle de un paciente |
-| POST | `/api/patients` | Crear paciente |
-| PUT | `/api/patients/:id` | Editar paciente |
-| DELETE | `/api/patients/:id` | Eliminar paciente |
+| POST | `/api/auth/register` | Registro de un profesional |
+| POST | `/api/auth/forgot-password` | Solicita un código de 6 dígitos por email |
+| POST | `/api/auth/reset-password` | Cambia la contraseña usando el código recibido |
+| GET | `/api/patients` | Lista paginada (`page`, `limit`, `search`, `year`, filtros) |
+| POST/PUT/DELETE | `/api/patients/:id` | Alta, edición y baja (archivado) de un paciente |
+| POST | `/api/patients/:id/notes` | Agrega una nota de consulta |
+| POST | `/api/patients/:id/attachments` | Sube un adjunto clínico |
+| GET | `/api/users` | Lista de profesionales |
+| PATCH | `/api/users/:id/active` | Activa o desactiva el acceso de un profesional |
+| GET | `/api/appointments` | Turnos filtrados por rango de fechas / profesional / paciente |
+| POST | `/api/appointments/:id/complete` | Marca un turno como completado |
+| POST | `/api/appointments/:id/no-show` | Marca un turno como no asistido |
+| POST | `/api/appointments/:id/cancel` | Cancela o reprograma un turno y avisa al paciente por email |
 
 ---
 
@@ -141,13 +153,15 @@ Todos los endpoints de pacientes requieren un header `Authorization: Bearer <tok
 
 **Zustand para estado global** — evita el prop drilling; cualquier componente accede al store sin pasar props por múltiples niveles.
 
-**Backend propio en vez de mock API** — el CRUD de pacientes y la autenticación viven en una API REST real con persistencia en MongoDB, en lugar de una API pública de solo lectura. Esto permite altas/bajas/ediciones reales y un modelo de datos clínico (documento, obra social, diagnóstico, alergias, médico asignado) en lugar de campos genéricos.
+**Backend propio** — el CRUD de pacientes, profesionales y turnos vive en una API REST real con persistencia en MongoDB, con un modelo de datos clínico completo (documento, obra social, diagnóstico, alergias, adjuntos, historial de notas) en lugar de campos genéricos.
 
-**Autenticación con JWT** — el login devuelve un token que se guarda en `localStorage` y se envía en cada request; las rutas de pacientes están protegidas por middleware en el backend y por un guard de rutas en el frontend.
+**Archivado en vez de borrado** — pacientes y profesionales usan un flag `archived` en lugar de eliminarse de la base, permitiendo restaurarlos en cualquier momento.
+
+**Autenticación con JWT y recuperación por código** — el login devuelve un token que se guarda en `localStorage`; la recuperación de contraseña genera un código de 6 dígitos con vencimiento de 10 minutos, hasheado igual que una contraseña antes de guardarse.
+
+**Recordatorios y avisos por email** — un job en el backend revisa cada 15 minutos los turnos próximos a las 12hs y envía el recordatorio; cancelar o reprogramar un turno dispara un aviso al paciente si tiene email cargado.
 
 **Infinite scroll manual** — implementado con `IntersectionObserver` en vez de una librería externa, contra la paginación real del backend.
-
-**Avatar con fallback** — el componente `Avatar` detecta errores de carga (`onError`) y muestra iniciales con color consistente por ID cuando no hay foto.
 
 **CSS variables para temas** — dark/light mode con variables CSS en `:root` y `html.dark`, sin dependencias externas.
 
@@ -155,4 +169,4 @@ Todos los endpoints de pacientes requieren un header `Authorization: Bearer <tok
 
 ## 👩‍💻 Desarrollado por
 
-Emily Kohler — Estudiante de Ingeniería en Sistemas de Información, Universidad de la Cuenca del Plata
+Emily Kohler

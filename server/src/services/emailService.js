@@ -52,6 +52,21 @@ export function appointmentCancelEmail({ patientName, professionalName, date, re
   }
 }
 
+export function passwordResetCodeEmail({ name, code }) {
+  return {
+    subject: 'Tu código para recuperar la contraseña — Clinix',
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+        <h2>Recuperar contraseña</h2>
+        <p>Hola ${name},</p>
+        <p>Usá este código para restablecer tu contraseña. Vence en 10 minutos:</p>
+        <p style="font-size: 32px; font-weight: bold; letter-spacing: 6px;">${code}</p>
+        <p>Si no pediste este cambio, podés ignorar este mensaje.</p>
+      </div>
+    `,
+  }
+}
+
 export function appointmentReminderEmail({ patientName, professionalName, date }) {
   const formatted = new Date(date).toLocaleString('es-AR', {
     dateStyle: 'full',

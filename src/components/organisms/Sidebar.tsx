@@ -125,32 +125,30 @@ export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
 
   return (
     <>
-      {/* Riel de íconos colapsado en mobile (en desktop lo maneja el contenedor con transición de abajo) */}
-      {!sidebarOpen && (
-        <div className="lg:hidden flex-shrink-0 h-screen sticky top-0" style={{ width: '4.5rem' }}>
-          <RailContent darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} onLogout={handleLogout} onExpand={() => setSidebarOpen(true)} />
-        </div>
-      )}
+      {/* Riel de íconos colapsado, siempre montado en mobile por debajo del drawer */}
+      <div className="lg:hidden flex-shrink-0 h-screen sticky top-0" style={{ width: '4.5rem' }}>
+        <RailContent darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} onLogout={handleLogout} onExpand={() => setSidebarOpen(true)} />
+      </div>
 
-      {/* Overlay + drawer expandido en mobile (por encima del contenido) */}
-      {sidebarOpen && (
-        <>
-          <div
-            className="lg:hidden fixed inset-0 z-40 overlay"
-            onClick={() => setSidebarOpen(false)}
-          />
-          <div className="lg:hidden fixed left-0 top-0 h-full w-64 z-50 animate-slideIn">
-            <WideContent
-              darkMode={darkMode}
-              onToggleDarkMode={onToggleDarkMode}
-              onLogout={handleLogout}
-              authUser={authUser}
-              onCollapse={() => setSidebarOpen(false)}
-              isMobileDrawer
-            />
-          </div>
-        </>
-      )}
+      {/* Overlay + drawer expandido en mobile — montados siempre para animar apertura y cierre */}
+      <div
+        className="lg:hidden fixed inset-0 z-40 overlay transition-opacity duration-300 ease-in-out"
+        style={{ opacity: sidebarOpen ? 1 : 0, pointerEvents: sidebarOpen ? 'auto' : 'none' }}
+        onClick={() => setSidebarOpen(false)}
+      />
+      <div
+        className="lg:hidden fixed left-0 top-0 h-full w-64 z-50 transition-transform duration-300 ease-in-out"
+        style={{ transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)' }}
+      >
+        <WideContent
+          darkMode={darkMode}
+          onToggleDarkMode={onToggleDarkMode}
+          onLogout={handleLogout}
+          authUser={authUser}
+          onCollapse={() => setSidebarOpen(false)}
+          isMobileDrawer
+        />
+      </div>
 
       {/* Sidebar de desktop — un único contenedor persistente que anima su ancho al expandir/colapsar */}
       <div
