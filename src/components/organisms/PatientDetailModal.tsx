@@ -41,7 +41,6 @@ export function PatientDetailModal({ patient, onClose }: PatientDetailModalProps
               <Avatar avatar={patient.avatar} name={patient.name} id={patient.id} size="lg" />
               <div className="flex-1 min-w-0">
                 <h2 className="text-xl font-bold mb-1 text-primary">{patient.name}</h2>
-                <span className="text-sm px-3 py-1 rounded-full badge-id">DNI {patient.documentId}</span>
               </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0 ml-3">

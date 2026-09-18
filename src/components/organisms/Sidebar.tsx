@@ -3,7 +3,7 @@ import { useClinicStore } from '../../store/useClinicStore'
 import type { AuthUser } from '../../types'
 import {
   IconUsers, IconCalendar, IconArchive, IconStethoscope,
-  IconSun, IconMoon, IconLogout, IconChevronLeft, IconChevronRight, IconMenu, IconClose,
+  IconSun, IconMoon, IconLogout, IconChevronLeft, IconChevronRight, IconClose,
 } from '../atoms/icons'
 
 interface SidebarProps {
@@ -124,17 +124,14 @@ export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
 
   return (
     <>
-      {/* Botón hamburguesa — solo en mobile, cuando el sidebar está cerrado */}
+      {/* Riel de íconos — colapsado, visible en cualquier tamaño de pantalla */}
       {!sidebarOpen && (
-        <button
-          className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 rounded-xl inline-flex items-center justify-center text-white shadow-md sidebar-rail-bg border-0"
-          onClick={() => setSidebarOpen(true)}
-        >
-          <IconMenu />
-        </button>
+        <div className="flex-shrink-0 h-screen sticky top-0" style={{ width: '4.5rem' }}>
+          <RailContent darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} onLogout={handleLogout} onExpand={() => setSidebarOpen(true)} />
+        </div>
       )}
 
-      {/* Overlay mobile */}
+      {/* Overlay mobile — solo cuando está expandido en pantallas chicas */}
       {sidebarOpen && (
         <div
           className="lg:hidden fixed inset-0 z-40 overlay"
@@ -142,7 +139,7 @@ export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
         />
       )}
 
-      {/* Drawer mobile (siempre expandido cuando está abierto) */}
+      {/* Drawer mobile expandido (por encima del contenido) */}
       {sidebarOpen && (
         <div className="lg:hidden fixed left-0 top-0 h-full w-64 z-50 animate-slideIn">
           <WideContent
@@ -155,16 +152,12 @@ export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
         </div>
       )}
 
-      {/* Sidebar desktop — riel de íconos o expandido, siempre visible */}
-      <div className="hidden lg:flex flex-shrink-0 h-screen sticky top-0 transition-all" style={{ width: sidebarOpen ? '16rem' : '4.5rem' }}>
-        <div className="w-full">
-          {sidebarOpen ? (
-            <WideContent darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} onLogout={handleLogout} authUser={authUser} />
-          ) : (
-            <RailContent darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} onLogout={handleLogout} onExpand={() => setSidebarOpen(true)} />
-          )}
+      {/* Sidebar expandido en desktop — parte del layout normal */}
+      {sidebarOpen && (
+        <div className="hidden lg:flex flex-shrink-0 h-screen sticky top-0" style={{ width: '16rem' }}>
+          <WideContent darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} onLogout={handleLogout} authUser={authUser} />
         </div>
-      </div>
+      )}
     </>
   )
 }

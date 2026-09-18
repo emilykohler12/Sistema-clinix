@@ -68,7 +68,6 @@ export function PatientDetail() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h1 className="text-2xl font-bold mb-1 text-primary">{patient.name}</h1>
-                    <span className="text-sm px-3 py-1 rounded-full badge-id">DNI {patient.documentId}</span>
                   </div>
                   <button onClick={() => toggleFavorite(patient.id)} className="text-3xl transition-transform hover:scale-125 flex-shrink-0 no-print">
                     <span className={isFavorite(patient.id) ? 'star-active' : 'star-inactive'}>★</span>

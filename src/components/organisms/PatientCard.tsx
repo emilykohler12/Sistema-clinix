@@ -103,7 +103,7 @@ export function PatientCard({
             onClick={() => onViewDetail(patient)}
             className="text-xs font-semibold flex items-center gap-1 transition-all hover:gap-2 link-accent"
           >
-            Ver detalle (DNI {patient.documentId}) →
+            Ver detalle →
           </button>
           <div className="flex gap-2">
             {archived ? (

@@ -18,7 +18,7 @@ export function Home() {
     patients, totalCount, loading, error, hasMore, loadMore, searchPatients, resetAndLoad,
     deletePatient, isFavorite, toggleFavorite, favorites,
     addToast, openEdit, openAdd,
-    dateFilter, setDateFilter, isFiltered, sidebarOpen,
+    dateFilter, setDateFilter, isFiltered,
     filters, setFilters, doctors, loadDoctors,
   } = useClinicStore()
 
@@ -184,10 +184,6 @@ export function Home() {
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
             <div className="flex items-center gap-3">
-              {/* Espacio para el botón hamburguesa cuando sidebar está cerrado */}
-              {!sidebarOpen && (
-                <div className="w-10 h-10 flex-shrink-0 lg:hidden" />
-              )}
               <div>
                 <h2 className="text-2xl font-bold text-primary">Pacientes</h2>
                 <p className="text-sm text-secondary">Gestión del historial clínico</p>
