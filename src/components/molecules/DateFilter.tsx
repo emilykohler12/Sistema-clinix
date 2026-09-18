@@ -21,11 +21,12 @@ export function DateFilter({ dateFilter, onDateFilterChange }: DateFilterProps) 
         <button
           key={year}
           onClick={() => onDateFilterChange(year)}
-          className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+          className="px-3 py-1.5 rounded-lg text-xs font-medium"
           style={{
             backgroundColor: dateFilter === year ? 'var(--accent)' : 'var(--bg-card)',
             color: dateFilter === year ? 'white' : 'var(--text-secondary)',
             border: `1px solid ${dateFilter === year ? 'var(--accent)' : 'var(--bg-card-border)'}`,
+            transition: 'background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease',
           }}
         >
           {year === 'all' ? 'Todos los años' : year}
