@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { User } from '../models/User.js'
 import { requireAuth } from '../middleware/auth.js'
-import { sendEmail, passwordResetCodeEmail } from '../services/emailService.js'
+import { sendBrevoEmail, passwordResetCodeEmail } from '../services/brevoEmailService.js'
 
 export const authRouter = Router()
 
@@ -89,7 +89,7 @@ authRouter.post('/forgot-password', async (req, res) => {
 
     try {
       const { subject, html } = passwordResetCodeEmail({ name: user.name, code })
-      await sendEmail({ to: user.email, subject, html })
+      await sendBrevoEmail({ to: user.email, subject, html })
     } catch (err) {
       console.error('[email] No se pudo enviar el código de recuperación:', err.message)
     }

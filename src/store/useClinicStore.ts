@@ -107,7 +107,7 @@ interface ClinicStore {
   createAppointment: (input: NewAppointmentInput) => Promise<void>
   updateAppointment: (id: string, input: Partial<Appointment>) => Promise<void>
   completeAppointment: (id: string, note?: string, paid?: boolean) => Promise<void>
-  cancelAppointment: (id: string, reason?: CancelReason) => Promise<void>
+  cancelAppointment: (id: string, reason?: CancelReason, newDate?: string) => Promise<void>
   markNoShow: (id: string) => Promise<void>
 }
 
@@ -442,8 +442,8 @@ export const useClinicStore = create<ClinicStore>()(
         set(state => ({ appointments: state.appointments.map(a => a.id === id ? updated : a) }))
       },
 
-      cancelAppointment: async (id, reason) => {
-        const updated = await cancelAppointmentApi(id, reason)
+      cancelAppointment: async (id, reason, newDate) => {
+        const updated = await cancelAppointmentApi(id, reason, newDate)
         set(state => ({ appointments: state.appointments.map(a => a.id === id ? updated : a) }))
       },
 

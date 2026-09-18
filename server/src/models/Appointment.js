@@ -15,6 +15,7 @@ const appointmentSchema = new mongoose.Schema(
       default: 'programado',
     },
     cancelReason: { type: String, enum: ['cancelado', 'reprogramado', null], default: null },
+    rescheduledTo: { type: Date, default: null },
     reminderSentAt: { type: Date, default: null },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },

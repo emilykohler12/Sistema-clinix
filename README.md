@@ -43,7 +43,8 @@ Aplicación full-stack para la gestión integral de un centro de salud: paciente
 | MongoDB + Mongoose | Base de datos y modelado |
 | JWT + bcrypt | Autenticación, hash de contraseñas y códigos de recuperación |
 | Multer | Carga de avatares y adjuntos clínicos |
-| Resend | Envío de emails (recordatorios, avisos de turno y recuperación de contraseña) |
+| Resend | Envío de emails (recordatorios y avisos de cancelación/reprogramación de turnos) |
+| Brevo | Envío del código de recuperación de contraseña |
 
 > No se utilizaron librerías de componentes UI (Material UI, Bootstrap, Chakra, etc.) en el frontend.
 
@@ -103,7 +104,7 @@ Email:     admin@clinix.com
 Password:  Admin1234
 ```
 
-El envío de emails (recordatorios de turno, avisos de cancelación/reprogramación y códigos de recuperación de contraseña) usa [Resend](https://resend.com); sin una `RESEND_API_KEY` configurada, la app funciona igual pero esos emails no se envían.
+El envío de emails de turnos (recordatorios, avisos de cancelación/reprogramación) usa [Resend](https://resend.com), y el código de recuperación de contraseña usa [Brevo](https://brevo.com); sin las API keys configuradas, la app funciona igual pero esos emails no se envían.
 
 ### 2. Frontend
 

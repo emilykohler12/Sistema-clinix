@@ -128,6 +128,7 @@ export interface Appointment {
   paymentType: PaymentType
   status: AppointmentStatus
   cancelReason?: CancelReason | null
+  rescheduledTo?: string | null
   reminderSentAt?: string | null
   createdAt: string
 }

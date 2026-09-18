@@ -36,6 +36,8 @@ export function AppointmentModal({ initialDate, appointment, onClose }: Appointm
   const [patients, setPatients] = useState<Patient[]>([])
   const [mode, setMode] = useState<'view' | 'edit'>(appointment ? 'view' : 'edit')
   const [showCancelChoice, setShowCancelChoice] = useState(false)
+  const [showRescheduleForm, setShowRescheduleForm] = useState(false)
+  const [rescheduleDate, setRescheduleDate] = useState('')
 
   useEffect(() => {
     if (doctors.length === 0) loadDoctors()
@@ -104,15 +106,16 @@ export function AppointmentModal({ initialDate, appointment, onClose }: Appointm
     }
   }
 
-  async function handleCancel(reason: 'cancelado' | 'reprogramado') {
+  async function handleCancel(reason: 'cancelado' | 'reprogramado', newDate?: string) {
     if (!appointment) return
     setSaving(true)
     setShowCancelChoice(false)
+    setShowRescheduleForm(false)
     try {
-      await cancelAppointment(appointment.id, reason)
+      await cancelAppointment(appointment.id, reason, newDate)
       addToast(
         reason === 'reprogramado'
-          ? 'Turno marcado como reprogramado. Se avisó al paciente por email si tenía uno cargado.'
+          ? 'Turno reprogramado. Se avisó al paciente por email con la nueva fecha si tenía uno cargado.'
           : 'Turno cancelado. Se avisó al paciente por email si tenía uno cargado.',
         'success'
       )
@@ -188,14 +191,35 @@ export function AppointmentModal({ initialDate, appointment, onClose }: Appointm
               </div>
             )}
 
-            {showCancelChoice ? (
+            {showRescheduleForm ? (
+              <div className="rounded-xl p-3 info-tile flex flex-col gap-2">
+                <p className="text-sm text-primary">¿Para cuándo se reprograma?</p>
+                <p className="text-xs text-muted">Se le va a avisar al paciente por email con esta nueva fecha y hora, si tiene un email cargado.</p>
+                <input
+                  type="datetime-local"
+                  value={rescheduleDate}
+                  onChange={e => setRescheduleDate(e.target.value)}
+                  className={inputClass}
+                />
+                <button
+                  onClick={() => handleCancel('reprogramado', new Date(rescheduleDate).toISOString())}
+                  disabled={saving || !rescheduleDate}
+                  className="px-4 py-2 text-sm text-white rounded-lg btn-save-gradient disabled:opacity-60"
+                >
+                  Confirmar reprogramación
+                </button>
+                <button onClick={() => setShowRescheduleForm(false)} disabled={saving} className="px-4 py-2 text-sm rounded-lg text-secondary">
+                  Volver
+                </button>
+              </div>
+            ) : showCancelChoice ? (
               <div className="rounded-xl p-3 info-tile flex flex-col gap-2">
                 <p className="text-sm text-primary">¿Cómo querés marcar este turno?</p>
                 <p className="text-xs text-muted">Si el paciente tiene email cargado, se le va a avisar automáticamente.</p>
                 <button onClick={() => handleCancel('cancelado')} disabled={saving} className="px-4 py-2 text-sm rounded-lg icon-btn-delete disabled:opacity-60">
                   Cancelar turno
                 </button>
-                <button onClick={() => handleCancel('reprogramado')} disabled={saving} className="px-4 py-2 text-sm rounded-lg icon-btn-edit disabled:opacity-60">
+                <button onClick={() => setShowRescheduleForm(true)} disabled={saving} className="px-4 py-2 text-sm rounded-lg icon-btn-edit disabled:opacity-60">
                   Marcar como reprogramado
                 </button>
                 <button onClick={() => setShowCancelChoice(false)} disabled={saving} className="px-4 py-2 text-sm rounded-lg text-secondary">

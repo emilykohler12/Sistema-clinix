@@ -29,12 +29,16 @@ export async function sendEmail({ to, subject, html }) {
   return response.json()
 }
 
-export function appointmentCancelEmail({ patientName, professionalName, date, reason }) {
+export function appointmentCancelEmail({ patientName, professionalName, date, reason, newDate }) {
   const formatted = new Date(date).toLocaleString('es-AR', {
     dateStyle: 'full',
     timeStyle: 'short',
   })
   const isReprogramado = reason === 'reprogramado'
+  const formattedNewDate = newDate
+    ? new Date(newDate).toLocaleString('es-AR', { dateStyle: 'full', timeStyle: 'short' })
+    : null
+
   return {
     subject: isReprogramado ? 'Tu turno fue reprogramado — Clinix' : 'Tu turno fue cancelado — Clinix',
     html: `
@@ -42,26 +46,10 @@ export function appointmentCancelEmail({ patientName, professionalName, date, re
         <h2>${isReprogramado ? 'Turno reprogramado' : 'Turno cancelado'}</h2>
         <p>Hola ${patientName},</p>
         <p>Te informamos que tu turno con <strong>${professionalName}</strong> que estaba programado para:</p>
-        <p style="font-size: 18px; font-weight: bold;">${formatted}</p>
-        <p>${isReprogramado
-          ? 'fue reprogramado. Por favor contactate con la clínica para coordinar una nueva fecha.'
-          : 'fue cancelado.'}</p>
+        <p style="font-size: 16px; font-weight: bold;">${formatted}</p>
+        <p>${isReprogramado ? 'fue reprogramado para:' : 'fue cancelado.'}</p>
+        ${formattedNewDate ? `<p style="font-size: 18px; font-weight: bold;">${formattedNewDate}</p>` : ''}
         <p>Ante cualquier duda, contactate con la clínica.</p>
-      </div>
-    `,
-  }
-}
-
-export function passwordResetCodeEmail({ name, code }) {
-  return {
-    subject: 'Tu código para recuperar la contraseña — Clinix',
-    html: `
-      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-        <h2>Recuperar contraseña</h2>
-        <p>Hola ${name},</p>
-        <p>Usá este código para restablecer tu contraseña. Vence en 10 minutos:</p>
-        <p style="font-size: 32px; font-weight: bold; letter-spacing: 6px;">${code}</p>
-        <p>Si no pediste este cambio, podés ignorar este mensaje.</p>
       </div>
     `,
   }

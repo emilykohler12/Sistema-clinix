@@ -51,10 +51,10 @@ export async function completeAppointment(id: string, note?: string, paid?: bool
   })
 }
 
-export async function cancelAppointment(id: string, reason: CancelReason = 'cancelado'): Promise<Appointment> {
+export async function cancelAppointment(id: string, reason: CancelReason = 'cancelado', newDate?: string): Promise<Appointment> {
   return apiFetch<Appointment>(`/appointments/${id}/cancel`, {
     method: 'POST',
-    body: JSON.stringify({ reason }),
+    body: JSON.stringify({ reason, newDate }),
   })
 }
 

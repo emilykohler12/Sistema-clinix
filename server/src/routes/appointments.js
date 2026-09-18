@@ -116,6 +116,12 @@ appointmentsRouter.post('/:id/no-show', async (req, res) => {
 // Cancela el turno (soft) y, si el paciente tiene email cargado, le avisa por mail
 appointmentsRouter.post('/:id/cancel', async (req, res) => {
   const reason = req.body?.reason === 'reprogramado' ? 'reprogramado' : 'cancelado'
+  const newDate = req.body?.newDate
+
+  if (reason === 'reprogramado' && !newDate) {
+    return res.status(400).json({ message: 'La nueva fecha es requerida para reprogramar' })
+  }
+
   const appointment = await Appointment.findById(req.params.id)
     .populate('patient', 'name documentId phone email')
     .populate('professional', 'name specialty')
@@ -123,6 +129,7 @@ appointmentsRouter.post('/:id/cancel', async (req, res) => {
 
   appointment.status = 'cancelado'
   appointment.cancelReason = reason
+  appointment.rescheduledTo = reason === 'reprogramado' ? new Date(newDate) : null
   await appointment.save()
 
   if (appointment.patient?.email) {
@@ -132,6 +139,7 @@ appointmentsRouter.post('/:id/cancel', async (req, res) => {
         professionalName: appointment.professional?.name || 'tu profesional',
         date: appointment.date,
         reason,
+        newDate: appointment.rescheduledTo,
       })
       await sendEmail({ to: appointment.patient.email, subject, html })
     } catch (err) {
