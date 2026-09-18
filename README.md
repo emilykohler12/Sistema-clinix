@@ -2,6 +2,8 @@
 
 Aplicación full-stack para la gestión integral de un centro de salud: pacientes, profesionales, turnos con calendario y notificaciones por email, todo con autenticación y persistencia en base de datos propia.
 
+🔗 **[Ver demo en vivo](https://sistema-clinix.vercel.app/)**
+
 ---
 
 ## ✨ Features
