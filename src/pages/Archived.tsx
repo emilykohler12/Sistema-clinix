@@ -36,7 +36,7 @@ export function Archived() {
       <div className="flex-1 min-w-0">
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="flex items-center gap-3 mb-6">
-            {!sidebarOpen && <div className="w-10 h-10 flex-shrink-0" />}
+            {!sidebarOpen && <div className="w-10 h-10 flex-shrink-0 lg:hidden" />}
             <div>
               <h2 className="text-2xl font-bold text-primary">Archivados</h2>
               <p className="text-sm text-secondary">Se pueden restaurar en cualquier momento</p>

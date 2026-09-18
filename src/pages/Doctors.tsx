@@ -83,7 +83,7 @@ export function Doctors() {
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
             <div className="flex items-center gap-3">
-              {!sidebarOpen && <div className="w-10 h-10 flex-shrink-0" />}
+              {!sidebarOpen && <div className="w-10 h-10 flex-shrink-0 lg:hidden" />}
               <div>
                 <h2 className="text-2xl font-bold text-primary">Profesionales</h2>
                 <p className="text-sm text-secondary">Personal habilitado para usar el sistema</p>

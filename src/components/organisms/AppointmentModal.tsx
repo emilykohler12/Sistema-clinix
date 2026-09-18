@@ -1,12 +1,27 @@
 import { useEffect, useState } from 'react'
 import { useClinicStore } from '../../store/useClinicStore'
 import { getPatients } from '../../services/patientService'
+import { formatTime } from '../../utils/calendarUtils'
 import type { Appointment, Patient, PaymentType } from '../../types'
 
 interface AppointmentModalProps {
   initialDate: Date
   appointment?: Appointment
   onClose: () => void
+}
+
+const statusLabel: Record<Appointment['status'], string> = {
+  programado: 'Programado',
+  confirmado: 'Confirmado',
+  completado: 'Completado',
+  cancelado: 'Cancelado',
+}
+
+const statusClass: Record<Appointment['status'], string> = {
+  programado: 'badge-status-waiting',
+  confirmado: 'badge-status-active',
+  completado: 'badge-status-discharged',
+  cancelado: 'badge-status-admitted',
 }
 
 function toLocalInputValue(date: Date) {
@@ -17,6 +32,7 @@ function toLocalInputValue(date: Date) {
 export function AppointmentModal({ initialDate, appointment, onClose }: AppointmentModalProps) {
   const { doctors, loadDoctors, createAppointment, updateAppointment, completeAppointment, cancelAppointment, addToast } = useClinicStore()
   const [patients, setPatients] = useState<Patient[]>([])
+  const [mode, setMode] = useState<'view' | 'edit'>(appointment ? 'view' : 'edit')
 
   useEffect(() => {
     if (doctors.length === 0) loadDoctors()
@@ -33,7 +49,8 @@ export function AppointmentModal({ initialDate, appointment, onClose }: Appointm
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const isEditing = !!appointment
+  const isEditingExisting = !!appointment
+  const isOpen = appointment ? appointment.status !== 'completado' && appointment.status !== 'cancelado' : true
   const inputClass = "w-full border rounded-lg px-3 py-2 text-sm focus:outline-none modal-input"
   const labelClass = "text-sm mb-1 block text-secondary"
 
@@ -47,7 +64,7 @@ export function AppointmentModal({ initialDate, appointment, onClose }: Appointm
     setError(null)
     try {
       const isoDate = new Date(dateValue).toISOString()
-      if (isEditing) {
+      if (isEditingExisting) {
         await updateAppointment(appointment.id, {
           date: isoDate,
           duration,
@@ -55,11 +72,12 @@ export function AppointmentModal({ initialDate, appointment, onClose }: Appointm
           paymentType,
         } as Partial<Appointment>)
         addToast('Turno actualizado', 'success')
+        onClose()
       } else {
         await createAppointment({ patient: patientId, professional: professionalId, date: isoDate, duration, price, paymentType })
         addToast('Turno agendado', 'success')
+        onClose()
       }
-      onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo guardar el turno')
     } finally {
@@ -96,18 +114,89 @@ export function AppointmentModal({ initialDate, appointment, onClose }: Appointm
     }
   }
 
+  if (appointment && mode === 'view') {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-4 overlay">
+        <div className="rounded-2xl w-full max-w-md flex flex-col card" style={{ maxHeight: '90vh' }}>
+          <div className="flex items-center justify-between p-6 pb-0 flex-shrink-0">
+            <h2 className="text-lg font-medium text-primary">Turno</h2>
+            <button onClick={onClose} className="text-xl hover:opacity-70 text-muted">×</button>
+          </div>
+
+          <div className="flex flex-col gap-3 p-6 overflow-y-auto">
+            <span className={`text-xs px-2 py-1 rounded-full inline-block w-fit ${statusClass[appointment.status]}`}>
+              {statusLabel[appointment.status]}
+            </span>
+
+            <div className="rounded-xl p-3 info-tile">
+              <p className="text-xs mb-1 text-muted">Paciente</p>
+              <p className="text-sm font-medium text-primary">{appointment.patient.name} — DNI {appointment.patient.documentId}</p>
+            </div>
+            <div className="rounded-xl p-3 info-tile">
+              <p className="text-xs mb-1 text-muted">Profesional</p>
+              <p className="text-sm font-medium text-primary">{appointment.professional.name}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl p-3 info-tile">
+                <p className="text-xs mb-1 text-muted">Fecha y hora</p>
+                <p className="text-sm font-medium text-primary">
+                  {new Date(appointment.date).toLocaleDateString('es-AR')} {formatTime(new Date(appointment.date))}
+                </p>
+              </div>
+              <div className="rounded-xl p-3 info-tile">
+                <p className="text-xs mb-1 text-muted">Duración</p>
+                <p className="text-sm font-medium text-primary">{appointment.duration} min</p>
+              </div>
+              <div className="rounded-xl p-3 info-tile">
+                <p className="text-xs mb-1 text-muted">Precio</p>
+                <p className="text-sm font-medium text-primary">${appointment.price}</p>
+              </div>
+              <div className="rounded-xl p-3 info-tile">
+                <p className="text-xs mb-1 text-muted">Tipo de pago</p>
+                <p className="text-sm font-medium text-primary">{appointment.paymentType === 'obra_social' ? 'Obra social' : 'Particular'}</p>
+              </div>
+            </div>
+
+            {isOpen && (
+              <div className="card-divider-top" style={{ paddingTop: '1rem' }}>
+                <label className={labelClass}>Nota rápida al completar (opcional)</label>
+                <input type="text" value={note} onChange={e => setNote(e.target.value)} className={inputClass} placeholder="Se atendió por..." />
+              </div>
+            )}
+
+            <div className="flex flex-col gap-2 mt-2">
+              <button onClick={() => setMode('edit')} className="px-4 py-2.5 text-sm rounded-lg icon-btn-edit">
+                Editar
+              </button>
+              {isOpen && (
+                <>
+                  <button onClick={handleComplete} disabled={saving} className="px-4 py-2 text-sm text-white rounded-lg btn-save-gradient disabled:opacity-60">
+                    Completar consulta
+                  </button>
+                  <button onClick={handleCancel} disabled={saving} className="px-4 py-2 text-sm rounded-lg icon-btn-delete disabled:opacity-60">
+                    Cancelar turno
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 p-4 overlay">
       <div className="rounded-2xl w-full max-w-md flex flex-col card" style={{ maxHeight: '90vh' }}>
         <div className="flex items-center justify-between p-6 pb-0 flex-shrink-0">
-          <h2 className="text-lg font-medium text-primary">{isEditing ? 'Editar turno' : 'Nuevo turno'}</h2>
+          <h2 className="text-lg font-medium text-primary">{isEditingExisting ? 'Editar turno' : 'Nuevo turno'}</h2>
           <button onClick={onClose} className="text-xl hover:opacity-70 text-muted">×</button>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3 p-6 overflow-y-auto">
           <div>
             <label className={labelClass}>Paciente *</label>
-            <select value={patientId} onChange={e => setPatientId(e.target.value)} className={inputClass} disabled={isEditing}>
+            <select value={patientId} onChange={e => setPatientId(e.target.value)} className={inputClass} disabled={isEditingExisting}>
               <option value="">Elegir paciente</option>
               {patients.map(p => <option key={p.id} value={p.id}>{p.name} — DNI {p.documentId}</option>)}
             </select>
@@ -115,7 +204,7 @@ export function AppointmentModal({ initialDate, appointment, onClose }: Appointm
 
           <div>
             <label className={labelClass}>Profesional *</label>
-            <select value={professionalId} onChange={e => setProfessionalId(e.target.value)} className={inputClass} disabled={isEditing}>
+            <select value={professionalId} onChange={e => setProfessionalId(e.target.value)} className={inputClass} disabled={isEditingExisting}>
               <option value="">Elegir profesional</option>
               {doctors.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
             </select>
@@ -145,28 +234,16 @@ export function AppointmentModal({ initialDate, appointment, onClose }: Appointm
             </select>
           </div>
 
-          {isEditing && appointment.status !== 'completado' && appointment.status !== 'cancelado' && (
-            <div className="card-divider-top" style={{ paddingTop: '1rem' }}>
-              <label className={labelClass}>Nota rápida al completar (opcional)</label>
-              <input type="text" value={note} onChange={e => setNote(e.target.value)} className={inputClass} placeholder="Se atendió por..." />
-            </div>
-          )}
-
           {error && <p className="text-xs text-error">{error}</p>}
 
           <div className="flex flex-col gap-2 mt-2">
             <button type="submit" disabled={saving} className="px-4 py-2.5 text-sm text-white rounded-lg btn-save-gradient disabled:opacity-60">
-              {isEditing ? 'Guardar cambios' : 'Agendar turno'}
+              {isEditingExisting ? 'Guardar cambios' : 'Agendar turno'}
             </button>
-            {isEditing && appointment.status !== 'completado' && appointment.status !== 'cancelado' && (
-              <>
-                <button type="button" onClick={handleComplete} disabled={saving} className="px-4 py-2 text-sm rounded-lg icon-btn-edit disabled:opacity-60">
-                  Completar consulta
-                </button>
-                <button type="button" onClick={handleCancel} disabled={saving} className="px-4 py-2 text-sm rounded-lg icon-btn-delete disabled:opacity-60">
-                  Cancelar turno
-                </button>
-              </>
+            {isEditingExisting && (
+              <button type="button" onClick={() => setMode('view')} className="px-4 py-2 text-sm rounded-lg text-secondary">
+                Cancelar edición
+              </button>
             )}
           </div>
         </form>

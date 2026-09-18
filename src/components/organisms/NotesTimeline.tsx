@@ -5,10 +5,9 @@ import type { NoteEntry } from '../../types'
 interface NotesTimelineProps {
   notes: NoteEntry[]
   onAdd: (text: string) => Promise<void>
-  onRemove: (noteId: string) => Promise<void>
 }
 
-export function NotesTimeline({ notes, onAdd, onRemove }: NotesTimelineProps) {
+export function NotesTimeline({ notes, onAdd }: NotesTimelineProps) {
   const [text, setText] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -50,17 +49,9 @@ export function NotesTimeline({ notes, onAdd, onRemove }: NotesTimelineProps) {
 
       <div className="flex flex-col gap-2 max-h-60 overflow-y-auto">
         {sorted.map(note => (
-          <div key={note.id} className="info-tile rounded-lg p-3 flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <p className="text-xs text-muted mb-1">{formatDate(note.date)}</p>
-              <p className="text-sm text-primary whitespace-pre-wrap">{note.text}</p>
-            </div>
-            <button
-              onClick={() => onRemove(note.id)}
-              className="text-xs text-muted hover:text-error flex-shrink-0 no-print"
-            >
-              ×
-            </button>
+          <div key={note.id} className="info-tile rounded-lg p-3">
+            <p className="text-xs text-muted mb-1">{formatDate(note.date)}</p>
+            <p className="text-sm text-primary whitespace-pre-wrap">{note.text}</p>
           </div>
         ))}
       </div>

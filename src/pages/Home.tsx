@@ -186,7 +186,7 @@ export function Home() {
             <div className="flex items-center gap-3">
               {/* Espacio para el botón hamburguesa cuando sidebar está cerrado */}
               {!sidebarOpen && (
-                <div className="w-10 h-10 flex-shrink-0" />
+                <div className="w-10 h-10 flex-shrink-0 lg:hidden" />
               )}
               <div>
                 <h2 className="text-2xl font-bold text-primary">Pacientes</h2>

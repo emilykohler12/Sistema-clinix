@@ -1,31 +1,77 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useClinicStore } from '../../store/useClinicStore'
+import type { AuthUser } from '../../types'
+import {
+  IconUsers, IconCalendar, IconArchive, IconStethoscope,
+  IconSun, IconMoon, IconLogout, IconChevronLeft, IconChevronRight, IconMenu, IconClose,
+} from '../atoms/icons'
 
 interface SidebarProps {
   darkMode: boolean
   onToggleDarkMode: () => void
 }
 
-const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+const navItems = [
+  { to: '/', end: true, label: 'Pacientes', Icon: IconUsers },
+  { to: '/calendario', end: false, label: 'Calendario', Icon: IconCalendar },
+  { to: '/archivados', end: false, label: 'Archivados', Icon: IconArchive },
+  { to: '/profesionales', end: false, label: 'Profesionales', Icon: IconStethoscope },
+]
+
+const railLinkClass = ({ isActive }: { isActive: boolean }) =>
+  `w-10 h-10 rounded-xl flex items-center justify-center transition-all sidebar-rail-icon ${isActive ? 'active' : ''}`
+
+const wideLinkClass = ({ isActive }: { isActive: boolean }) =>
   `w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white transition-all hover:bg-white/10 ${isActive ? 'sidebar-nav-active' : ''}`
 
-export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
-  const { sidebarOpen, setSidebarOpen, authUser, logout } = useClinicStore()
-  const navigate = useNavigate()
+interface RailContentProps {
+  darkMode: boolean
+  onToggleDarkMode: () => void
+  onLogout: () => void
+  onExpand: () => void
+}
 
-  function handleLogout() {
-    logout()
-    navigate('/login')
-  }
+function RailContent({ darkMode, onToggleDarkMode, onLogout, onExpand }: RailContentProps) {
+  return (
+    <div className="flex flex-col items-center h-full sidebar-rail-bg py-4 gap-2">
+      <img src="/logo.jpg" alt="Clinix" className="w-9 h-9 object-contain rounded-lg mb-2" />
+      <nav className="flex-1 flex flex-col gap-2">
+        {navItems.map(({ to, end, label, Icon }) => (
+          <NavLink key={to} to={to} end={end} className={railLinkClass} title={label}>
+            <Icon />
+          </NavLink>
+        ))}
+      </nav>
+      <button onClick={onToggleDarkMode} className="w-10 h-10 rounded-xl flex items-center justify-center sidebar-rail-icon" title="Cambiar tema">
+        {darkMode ? <IconSun /> : <IconMoon />}
+      </button>
+      <button onClick={onLogout} className="w-10 h-10 rounded-xl flex items-center justify-center sidebar-rail-icon" title="Cerrar sesión">
+        <IconLogout />
+      </button>
+      <button onClick={onExpand} className="w-10 h-10 rounded-xl flex items-center justify-center sidebar-rail-icon" title="Expandir">
+        <IconChevronRight />
+      </button>
+    </div>
+  )
+}
 
-  const SidebarContent = ({ onClose }: { onClose?: () => void }) => (
+interface WideContentProps {
+  darkMode: boolean
+  onToggleDarkMode: () => void
+  onLogout: () => void
+  authUser: AuthUser | null
+  onClose?: () => void
+}
+
+function WideContent({ darkMode, onToggleDarkMode, onLogout, authUser, onClose }: WideContentProps) {
+  return (
     <div className="flex flex-col h-full sidebar-bg">
       <div className="p-5 border-b sidebar-border flex flex-col items-center text-center relative">
         <button
-          onClick={onClose ?? (() => setSidebarOpen(false))}
-          className="absolute top-3 right-3 w-7 h-7 rounded-lg flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all text-sm"
+          onClick={onClose}
+          className="absolute top-3 right-3 w-7 h-7 rounded-lg flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all"
         >
-          ✕
+          {onClose ? <IconClose /> : <IconChevronLeft />}
         </button>
         <img src="/logo.jpg" alt="Clinix" className="w-14 h-14 object-contain rounded-xl mb-3" />
         <h1 className="text-xl font-bold text-white tracking-wide">CLINIX</h1>
@@ -33,18 +79,12 @@ export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
       </div>
 
       <nav className="flex-1 p-4 flex flex-col gap-1">
-        <NavLink to="/" end onClick={onClose} className={navLinkClass}>
-          Pacientes
-        </NavLink>
-        <NavLink to="/calendario" onClick={onClose} className={navLinkClass}>
-          Calendario
-        </NavLink>
-        <NavLink to="/archivados" onClick={onClose} className={navLinkClass}>
-          Archivados
-        </NavLink>
-        <NavLink to="/profesionales" onClick={onClose} className={navLinkClass}>
-          Profesionales
-        </NavLink>
+        {navItems.map(({ to, end, label, Icon }) => (
+          <NavLink key={to} to={to} end={end} onClick={onClose} className={wideLinkClass}>
+            <Icon />
+            {label}
+          </NavLink>
+        ))}
       </nav>
 
       <div className="p-4 border-t sidebar-border flex flex-col gap-1">
@@ -58,28 +98,39 @@ export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
           onClick={onToggleDarkMode}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white transition-all hover:bg-white/10"
         >
+          {darkMode ? <IconSun /> : <IconMoon />}
           {darkMode ? 'Modo claro' : 'Modo oscuro'}
         </button>
         <button
-          onClick={handleLogout}
+          onClick={onLogout}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white transition-all hover:bg-white/10"
         >
+          <IconLogout />
           Cerrar sesión
         </button>
       </div>
     </div>
   )
+}
+
+export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
+  const { sidebarOpen, setSidebarOpen, authUser, logout } = useClinicStore()
+  const navigate = useNavigate()
+
+  function handleLogout() {
+    logout()
+    navigate('/login')
+  }
 
   return (
     <>
-      {/* Botón hamburguesa — solo visible cuando el sidebar está cerrado */}
+      {/* Botón hamburguesa — solo en mobile, cuando el sidebar está cerrado */}
       {!sidebarOpen && (
         <button
-          className="fixed top-4 left-4 z-50 w-10 h-10 rounded-xl inline-flex items-center justify-center text-white shadow-md sidebar-bg border-0"
-          style={{ lineHeight: 1 }}
+          className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 rounded-xl inline-flex items-center justify-center text-white shadow-md sidebar-rail-bg border-0"
           onClick={() => setSidebarOpen(true)}
         >
-          ☰
+          <IconMenu />
         </button>
       )}
 
@@ -91,21 +142,29 @@ export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
         />
       )}
 
-      {/* Sidebar mobile */}
+      {/* Drawer mobile (siempre expandido cuando está abierto) */}
       {sidebarOpen && (
         <div className="lg:hidden fixed left-0 top-0 h-full w-64 z-50 animate-slideIn">
-          <SidebarContent onClose={() => setSidebarOpen(false)} />
+          <WideContent
+            darkMode={darkMode}
+            onToggleDarkMode={onToggleDarkMode}
+            onLogout={handleLogout}
+            authUser={authUser}
+            onClose={() => setSidebarOpen(false)}
+          />
         </div>
       )}
 
-      {/* Sidebar desktop */}
-      {sidebarOpen && (
-        <div className="hidden lg:flex w-64 flex-shrink-0 h-screen sticky top-0">
-          <div className="w-full">
-            <SidebarContent />
-          </div>
+      {/* Sidebar desktop — riel de íconos o expandido, siempre visible */}
+      <div className="hidden lg:flex flex-shrink-0 h-screen sticky top-0 transition-all" style={{ width: sidebarOpen ? '16rem' : '4.5rem' }}>
+        <div className="w-full">
+          {sidebarOpen ? (
+            <WideContent darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} onLogout={handleLogout} authUser={authUser} />
+          ) : (
+            <RailContent darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} onLogout={handleLogout} onExpand={() => setSidebarOpen(true)} />
+          )}
         </div>
-      )}
+      </div>
     </>
   )
 }

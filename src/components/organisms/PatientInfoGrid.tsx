@@ -34,7 +34,7 @@ interface PatientInfoGridProps {
 const LONG_ABSENCE_DAYS = 60
 
 export function PatientInfoGrid({ patient, formatDate }: PatientInfoGridProps) {
-  const { addNote, removeNote, uploadAttachment, removeAttachment } = useClinicStore()
+  const { addNote, uploadAttachment, removeAttachment } = useClinicStore()
   const [nextAppointment, setNextAppointment] = useState<Appointment | null>(null)
 
   useEffect(() => {
@@ -47,19 +47,20 @@ export function PatientInfoGrid({ patient, formatDate }: PatientInfoGridProps) {
   const longAbsence = patient.lastVisitAt ? daysSince(patient.lastVisitAt) >= LONG_ABSENCE_DAYS : false
 
   const items: InfoItem[] = [
+    { label: 'DNI', value: patient.documentId },
     { label: 'Fecha de nacimiento', value: patient.birthDate ? formatDate(patient.birthDate) : 'Sin registrar' },
     { label: 'Género', value: genderLabel[patient.gender] },
-    { label: 'Grupo sanguíneo', value: patient.bloodType || 'Sin registrar' },
-    { label: 'Estado', value: statusLabel[patient.status] },
-    { label: 'Peso', value: patient.weight ? `${patient.weight} kg` : 'Sin registrar' },
-    { label: 'Altura', value: patient.height ? `${patient.height} cm` : 'Sin registrar' },
     { label: 'Teléfono', value: patient.phone || 'Sin registrar' },
     { label: 'Email', value: patient.email || 'Sin registrar' },
     { label: 'Dirección', value: patient.address || 'Sin registrar' },
-    { label: 'Obra social', value: patient.healthInsurance || 'Particular' },
-    { label: 'Contacto de emergencia', value: patient.emergencyContactName ? `${patient.emergencyContactName}${patient.emergencyContactPhone ? ` · ${patient.emergencyContactPhone}` : ''}` : 'Sin registrar' },
+    { label: 'Peso', value: patient.weight ? `${patient.weight} kg` : 'Sin registrar' },
+    { label: 'Altura', value: patient.height ? `${patient.height} cm` : 'Sin registrar' },
+    { label: 'Grupo sanguíneo', value: patient.bloodType || 'Sin registrar' },
+    { label: 'Estado', value: statusLabel[patient.status] },
     { label: 'Profesional asignado', value: patient.assignedDoctor || 'Sin asignar' },
     { label: 'Fecha de registro', value: formatDate(patient.createdAt) },
+    { label: 'Obra social', value: patient.healthInsurance || 'Particular' },
+    { label: 'Contacto de emergencia', value: patient.emergencyContactName ? `${patient.emergencyContactName}${patient.emergencyContactPhone ? ` · ${patient.emergencyContactPhone}` : ''}` : 'Sin registrar' },
   ]
 
   if (isMinor) {
@@ -134,7 +135,6 @@ export function PatientInfoGrid({ patient, formatDate }: PatientInfoGridProps) {
         <NotesTimeline
           notes={patient.notesHistory}
           onAdd={(text) => addNote(patient.id, text)}
-          onRemove={(noteId) => removeNote(patient.id, noteId)}
         />
       </div>
 
