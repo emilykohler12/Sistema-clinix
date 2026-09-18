@@ -5,6 +5,7 @@ import { Register } from './pages/Register'
 import { PatientDetail } from './pages/PatientDetail'
 import { Archived } from './pages/Archived'
 import { Doctors } from './pages/Doctors'
+import { CalendarPage } from './pages/Calendar'
 import { PatientModal } from './components/organisms/PatientModal'
 import { Toast } from './components/organisms/Toast'
 import { useClinicStore } from './store/useClinicStore'
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="/pacientes/:id" element={<RequireAuth><PatientDetail /></RequireAuth>} />
         <Route path="/archivados" element={<RequireAuth><Archived /></RequireAuth>} />
         <Route path="/profesionales" element={<RequireAuth><Doctors /></RequireAuth>} />
+        <Route path="/calendario" element={<RequireAuth><CalendarPage /></RequireAuth>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 

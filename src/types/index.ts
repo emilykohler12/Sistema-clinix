@@ -98,3 +98,34 @@ export interface PatientFilters {
   assignedDoctor?: string
   bloodType?: BloodType
 }
+
+export type AppointmentStatus = 'programado' | 'confirmado' | 'completado' | 'cancelado'
+export type PaymentType = 'obra_social' | 'particular'
+
+export interface AppointmentPatientRef {
+  id: string
+  name: string
+  documentId: string
+  phone: string
+  email: string
+}
+
+export interface AppointmentProfessionalRef {
+  id: string
+  name: string
+  specialty?: string
+}
+
+export interface Appointment {
+  id: string
+  patient: AppointmentPatientRef
+  professional: AppointmentProfessionalRef
+  date: string
+  duration: number
+  price: number
+  paid: boolean
+  paymentType: PaymentType
+  status: AppointmentStatus
+  reminderSentAt?: string | null
+  createdAt: string
+}

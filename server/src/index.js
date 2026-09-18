@@ -7,6 +7,8 @@ import { authRouter } from './routes/auth.js'
 import { patientsRouter } from './routes/patients.js'
 import { usersRouter } from './routes/users.js'
 import { uploadsRouter, uploadsDir } from './routes/uploads.js'
+import { appointmentsRouter } from './routes/appointments.js'
+import { startReminderJob } from './services/reminderJob.js'
 
 fs.mkdirSync(uploadsDir, { recursive: true })
 
@@ -21,6 +23,7 @@ app.use('/api/auth', authRouter)
 app.use('/api/patients', patientsRouter)
 app.use('/api/users', usersRouter)
 app.use('/api/uploads', uploadsRouter)
+app.use('/api/appointments', appointmentsRouter)
 
 app.use((err, _req, res, _next) => {
   console.error(err)
@@ -32,6 +35,7 @@ const PORT = process.env.PORT || 4000
 connectDB()
   .then(() => {
     app.listen(PORT, () => console.log(`[server] Clinix API escuchando en http://localhost:${PORT}`))
+    startReminderJob()
   })
   .catch((err) => {
     console.error('[server] No se pudo conectar a la base de datos:', err.message)

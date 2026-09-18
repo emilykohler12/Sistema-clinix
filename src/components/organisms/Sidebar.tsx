@@ -36,6 +36,9 @@ export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
         <NavLink to="/" end onClick={onClose} className={navLinkClass}>
           Pacientes
         </NavLink>
+        <NavLink to="/calendario" onClick={onClose} className={navLinkClass}>
+          Calendario
+        </NavLink>
         <NavLink to="/archivados" onClick={onClose} className={navLinkClass}>
           Archivados
         </NavLink>

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { AuthUser, Doctor, Patient, PatientFilters, Toast, ToastType } from '../types'
+import type { Appointment, AuthUser, Doctor, Patient, PatientFilters, Toast, ToastType } from '../types'
 import {
   getPatients,
   getPatientById,
@@ -16,6 +16,14 @@ import {
 } from '../services/patientService'
 import { login as loginApi, register as registerApi, logout as logoutApi, getCurrentUser } from '../services/authService'
 import { getUsers, createUser, setUserActive, archiveUser, restoreUser, type NewDoctorInput } from '../services/userService'
+import {
+  getAppointments,
+  createAppointment as createAppointmentApi,
+  updateAppointment as updateAppointmentApi,
+  completeAppointment as completeAppointmentApi,
+  cancelAppointment as cancelAppointmentApi,
+  type NewAppointmentInput,
+} from '../services/appointmentService'
 
 const LIMIT = 10
 
@@ -91,6 +99,14 @@ interface ClinicStore {
   login: (email: string, password: string) => Promise<void>
   register: (name: string, email: string, password: string, specialty?: string) => Promise<void>
   logout: () => void
+
+  appointments: Appointment[]
+  appointmentsLoading: boolean
+  loadAppointments: (range: { start?: string; end?: string; professional?: string; patient?: string }) => Promise<void>
+  createAppointment: (input: NewAppointmentInput) => Promise<void>
+  updateAppointment: (id: string, input: Partial<Appointment>) => Promise<void>
+  completeAppointment: (id: string, note?: string, paid?: boolean) => Promise<void>
+  cancelAppointment: (id: string) => Promise<void>
 }
 
 export const useClinicStore = create<ClinicStore>()(
@@ -392,6 +408,41 @@ export const useClinicStore = create<ClinicStore>()(
         } finally {
           set({ loading: false })
         }
+      },
+
+      appointments: [],
+      appointmentsLoading: false,
+
+      loadAppointments: async (range) => {
+        set({ appointmentsLoading: true })
+        try {
+          const appointments = await getAppointments(range)
+          set({ appointments })
+        } catch {
+          get().addToast('No se pudieron cargar los turnos', 'error')
+        } finally {
+          set({ appointmentsLoading: false })
+        }
+      },
+
+      createAppointment: async (input) => {
+        const created = await createAppointmentApi(input)
+        set(state => ({ appointments: [...state.appointments, created].sort((a, b) => a.date.localeCompare(b.date)) }))
+      },
+
+      updateAppointment: async (id, input) => {
+        const updated = await updateAppointmentApi(id, input)
+        set(state => ({ appointments: state.appointments.map(a => a.id === id ? updated : a) }))
+      },
+
+      completeAppointment: async (id, note, paid) => {
+        const updated = await completeAppointmentApi(id, note, paid)
+        set(state => ({ appointments: state.appointments.map(a => a.id === id ? updated : a) }))
+      },
+
+      cancelAppointment: async (id) => {
+        const updated = await cancelAppointmentApi(id)
+        set(state => ({ appointments: state.appointments.map(a => a.id === id ? updated : a) }))
       },
     }),
     {

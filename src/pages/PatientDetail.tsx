@@ -43,17 +43,22 @@ export function PatientDetail() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-page)' }}>
-      <div className="sticky top-0 z-40 navbar-gradient">
-        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center gap-3">
-          <button onClick={() => navigate('/')} className="text-white/70 hover:text-white transition-colors text-sm flex items-center gap-1">
-            ← Volver
+      <div className="sticky top-0 z-40 navbar-gradient no-print">
+        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <button onClick={() => navigate('/')} className="text-white/70 hover:text-white transition-colors text-sm flex items-center gap-1">
+              ← Volver
+            </button>
+            <span className="text-white/30">|</span>
+            <span className="text-white text-sm font-medium">Detalle del paciente</span>
+          </div>
+          <button onClick={() => window.print()} className="text-white/80 hover:text-white transition-colors text-sm">
+            Imprimir / Exportar PDF
           </button>
-          <span className="text-white/30">|</span>
-          <span className="text-white text-sm font-medium">Detalle del paciente</span>
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 py-8 animate-fadeIn">
+      <div className="max-w-3xl mx-auto px-4 py-8 animate-fadeIn print-area">
         <div className="rounded-2xl overflow-hidden card">
           <div className="h-2 card-accent-bar" />
           <div className="p-6">
@@ -65,7 +70,7 @@ export function PatientDetail() {
                     <h1 className="text-2xl font-bold mb-1 text-primary">{patient.name}</h1>
                     <span className="text-sm px-3 py-1 rounded-full badge-id">DNI {patient.documentId}</span>
                   </div>
-                  <button onClick={() => toggleFavorite(patient.id)} className="text-3xl transition-transform hover:scale-125 flex-shrink-0">
+                  <button onClick={() => toggleFavorite(patient.id)} className="text-3xl transition-transform hover:scale-125 flex-shrink-0 no-print">
                     <span className={isFavorite(patient.id) ? 'star-active' : 'star-inactive'}>★</span>
                   </button>
                 </div>
@@ -74,7 +79,7 @@ export function PatientDetail() {
 
             <PatientInfoGrid patient={patient} formatDate={formatDate} />
 
-            <div className="card-divider-top" style={{ paddingTop: '1.25rem', marginTop: '1.25rem' }}>
+            <div className="card-divider-top no-print" style={{ paddingTop: '1.25rem', marginTop: '1.25rem' }}>
               <button onClick={() => openEdit(patient)} className="w-full py-2.5 rounded-xl text-sm font-medium text-white transition-all hover:opacity-90 btn-save-gradient">
                 Editar paciente
               </button>

@@ -43,7 +43,7 @@ export function AttachmentsList({ attachments, onUpload, onRemove }: Attachments
         <button
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="text-xs px-3 py-1 rounded-lg font-medium icon-btn-edit disabled:opacity-60"
+          className="text-xs px-3 py-1 rounded-lg font-medium icon-btn-edit disabled:opacity-60 no-print"
         >
           {uploading ? 'Subiendo...' : 'Subir archivo'}
         </button>
@@ -69,7 +69,7 @@ export function AttachmentsList({ attachments, onUpload, onRemove }: Attachments
             </a>
             <button
               onClick={() => onRemove(a.id)}
-              className="text-xs text-muted hover:text-error flex-shrink-0"
+              className="text-xs text-muted hover:text-error flex-shrink-0 no-print"
             >
               ×
             </button>

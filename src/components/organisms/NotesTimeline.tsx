@@ -28,7 +28,7 @@ export function NotesTimeline({ notes, onAdd, onRemove }: NotesTimelineProps) {
   return (
     <div>
       <p className="text-xs font-medium mb-2 uppercase tracking-wide text-muted">Notas de consulta</p>
-      <div className="flex gap-2 mb-3">
+      <div className="flex gap-2 mb-3 no-print">
         <input
           type="text"
           value={text}
@@ -57,7 +57,7 @@ export function NotesTimeline({ notes, onAdd, onRemove }: NotesTimelineProps) {
             </div>
             <button
               onClick={() => onRemove(note.id)}
-              className="text-xs text-muted hover:text-error flex-shrink-0"
+              className="text-xs text-muted hover:text-error flex-shrink-0 no-print"
             >
               ×
             </button>

@@ -1,8 +1,10 @@
+import { useEffect, useState } from 'react'
 import { NotesTimeline } from './NotesTimeline'
 import { AttachmentsList } from './AttachmentsList'
 import { useClinicStore } from '../../store/useClinicStore'
 import { timeSince, daysSince, calculateAge } from '../../utils/formatDate'
-import type { Patient } from '../../types'
+import { getAppointments } from '../../services/appointmentService'
+import type { Appointment, Patient } from '../../types'
 
 const statusLabel: Record<Patient['status'], string> = {
   activo: 'Activo',
@@ -33,6 +35,13 @@ const LONG_ABSENCE_DAYS = 60
 
 export function PatientInfoGrid({ patient, formatDate }: PatientInfoGridProps) {
   const { addNote, removeNote, uploadAttachment, removeAttachment } = useClinicStore()
+  const [nextAppointment, setNextAppointment] = useState<Appointment | null>(null)
+
+  useEffect(() => {
+    getAppointments({ patient: patient.id, upcoming: true })
+      .then(list => setNextAppointment(list[0] ?? null))
+      .catch(() => setNextAppointment(null))
+  }, [patient.id])
 
   const isMinor = patient.birthDate ? calculateAge(patient.birthDate) < 18 : false
   const longAbsence = patient.lastVisitAt ? daysSince(patient.lastVisitAt) >= LONG_ABSENCE_DAYS : false
@@ -62,15 +71,26 @@ export function PatientInfoGrid({ patient, formatDate }: PatientInfoGridProps) {
 
   return (
     <div className="flex flex-col gap-5">
-      {patient.lastVisitAt && (
-        <div className={`rounded-xl p-3 ${longAbsence ? 'badge-status-admitted' : 'info-tile'}`}>
-          <p className="text-xs mb-1 uppercase tracking-wide opacity-80">Última consulta</p>
-          <p className="text-sm font-medium">
-            {formatDate(patient.lastVisitAt)} ({timeSince(patient.lastVisitAt)})
-            {longAbsence && ' — hace tiempo que no viene'}
-          </p>
-        </div>
-      )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {patient.lastVisitAt && (
+          <div className={`rounded-xl p-3 ${longAbsence ? 'badge-status-admitted' : 'info-tile'}`}>
+            <p className="text-xs mb-1 uppercase tracking-wide opacity-80">Última consulta</p>
+            <p className="text-sm font-medium">
+              {formatDate(patient.lastVisitAt)} ({timeSince(patient.lastVisitAt)})
+              {longAbsence && ' — hace tiempo que no viene'}
+            </p>
+          </div>
+        )}
+
+        {nextAppointment && (
+          <div className="rounded-xl p-3 badge-status-waiting">
+            <p className="text-xs mb-1 uppercase tracking-wide opacity-80">Próxima cita</p>
+            <p className="text-sm font-medium">
+              {formatDate(nextAppointment.date)} — {new Date(nextAppointment.date).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+            </p>
+          </div>
+        )}
+      </div>
 
       <div>
         <p className="text-xs font-medium mb-2 uppercase tracking-wide text-muted">Diagnóstico</p>
