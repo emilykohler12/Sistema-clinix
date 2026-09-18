@@ -4,6 +4,12 @@ Aplicación full-stack para la gestión integral de un centro de salud: paciente
 
 🔗 **[Ver demo en vivo](https://sistema-clinix.vercel.app/)**
 
+Cuenta de prueba:
+```
+Email:     admin@clinix.com
+Password:  Admin1234
+```
+
 ---
 
 ## ✨ Features
