@@ -99,8 +99,9 @@ export interface PatientFilters {
   bloodType?: BloodType
 }
 
-export type AppointmentStatus = 'programado' | 'confirmado' | 'completado' | 'cancelado'
+export type AppointmentStatus = 'programado' | 'confirmado' | 'completado' | 'cancelado' | 'no_asistio'
 export type PaymentType = 'obra_social' | 'particular'
+export type CancelReason = 'cancelado' | 'reprogramado'
 
 export interface AppointmentPatientRef {
   id: string
@@ -126,6 +127,7 @@ export interface Appointment {
   paid: boolean
   paymentType: PaymentType
   status: AppointmentStatus
+  cancelReason?: CancelReason | null
   reminderSentAt?: string | null
   createdAt: string
 }

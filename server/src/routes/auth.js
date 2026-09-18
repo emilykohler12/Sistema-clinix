@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { User } from '../models/User.js'
 import { requireAuth } from '../middleware/auth.js'
+import { sendBrevoEmail, passwordResetCodeEmail } from '../services/brevoEmailService.js'
 
 export const authRouter = Router()
 
@@ -70,6 +71,57 @@ authRouter.post('/login', async (req, res) => {
     token,
     user: { id: user._id, name: user.name, email: user.email, role: user.role, specialty: user.specialty },
   })
+})
+
+authRouter.post('/forgot-password', async (req, res) => {
+  const { email } = req.body
+  if (!email?.trim()) return res.status(400).json({ message: 'El email es requerido' })
+
+  const normalizedEmail = email.toLowerCase().trim()
+  const user = await User.findOne({ email: normalizedEmail })
+
+  // Responde siempre el mismo mensaje, exista o no la cuenta, para no filtrar qué emails están registrados
+  if (user && !user.archived) {
+    const code = String(Math.floor(100000 + Math.random() * 900000))
+    user.resetCodeHash = await bcrypt.hash(code, 10)
+    user.resetCodeExpires = new Date(Date.now() + 10 * 60 * 1000)
+    await user.save()
+
+    try {
+      const { subject, html } = passwordResetCodeEmail({ name: user.name, code })
+      await sendBrevoEmail({ to: user.email, subject, html })
+    } catch (err) {
+      console.error('[email] No se pudo enviar el código de recuperación:', err.message)
+    }
+  }
+
+  res.json({ message: 'Si el email existe, te enviamos un código de recuperación' })
+})
+
+authRouter.post('/reset-password', async (req, res) => {
+  const { email, code, newPassword } = req.body
+  if (!email?.trim() || !code?.trim() || !newPassword) {
+    return res.status(400).json({ message: 'Email, código y nueva contraseña son requeridos' })
+  }
+  if (newPassword.length < 6) {
+    return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres' })
+  }
+
+  const normalizedEmail = email.toLowerCase().trim()
+  const user = await User.findOne({ email: normalizedEmail }).select('+resetCodeHash +resetCodeExpires')
+  if (!user || !user.resetCodeHash || !user.resetCodeExpires || user.resetCodeExpires.getTime() < Date.now()) {
+    return res.status(400).json({ message: 'Código inválido o vencido' })
+  }
+
+  const validCode = await bcrypt.compare(code.trim(), user.resetCodeHash)
+  if (!validCode) return res.status(400).json({ message: 'Código inválido o vencido' })
+
+  user.passwordHash = await bcrypt.hash(newPassword, 10)
+  user.resetCodeHash = null
+  user.resetCodeExpires = null
+  await user.save()
+
+  res.json({ message: 'Contraseña actualizada correctamente' })
 })
 
 authRouter.get('/me', requireAuth, async (req, res) => {

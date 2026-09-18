@@ -44,3 +44,17 @@ export function getCurrentUser(): AuthUser | null {
 export function isAuthenticated(): boolean {
   return Boolean(localStorage.getItem('clinix_token'))
 }
+
+export async function requestPasswordReset(email: string): Promise<void> {
+  await apiFetch<{ message: string }>('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  })
+}
+
+export async function resetPassword(email: string, code: string, newPassword: string): Promise<void> {
+  await apiFetch<{ message: string }>('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ email, code, newPassword }),
+  })
+}

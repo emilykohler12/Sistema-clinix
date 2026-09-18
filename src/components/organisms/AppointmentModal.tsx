@@ -15,6 +15,7 @@ const statusLabel: Record<Appointment['status'], string> = {
   confirmado: 'Confirmado',
   completado: 'Completado',
   cancelado: 'Cancelado',
+  no_asistio: 'No asistió',
 }
 
 const statusClass: Record<Appointment['status'], string> = {
@@ -22,6 +23,7 @@ const statusClass: Record<Appointment['status'], string> = {
   confirmado: 'badge-status-active',
   completado: 'badge-status-discharged',
   cancelado: 'badge-status-admitted',
+  no_asistio: 'badge-status-treatment',
 }
 
 function toLocalInputValue(date: Date) {
@@ -30,9 +32,10 @@ function toLocalInputValue(date: Date) {
 }
 
 export function AppointmentModal({ initialDate, appointment, onClose }: AppointmentModalProps) {
-  const { doctors, loadDoctors, createAppointment, updateAppointment, completeAppointment, cancelAppointment, addToast } = useClinicStore()
+  const { doctors, loadDoctors, createAppointment, updateAppointment, completeAppointment, cancelAppointment, markNoShow, addToast } = useClinicStore()
   const [patients, setPatients] = useState<Patient[]>([])
   const [mode, setMode] = useState<'view' | 'edit'>(appointment ? 'view' : 'edit')
+  const [showCancelChoice, setShowCancelChoice] = useState(false)
 
   useEffect(() => {
     if (doctors.length === 0) loadDoctors()
@@ -50,7 +53,9 @@ export function AppointmentModal({ initialDate, appointment, onClose }: Appointm
   const [error, setError] = useState<string | null>(null)
 
   const isEditingExisting = !!appointment
-  const isOpen = appointment ? appointment.status !== 'completado' && appointment.status !== 'cancelado' : true
+  const isOpen = appointment
+    ? !['completado', 'cancelado', 'no_asistio'].includes(appointment.status)
+    : true
   const inputClass = "w-full border rounded-lg px-3 py-2 text-sm focus:outline-none modal-input"
   const labelClass = "text-sm mb-1 block text-secondary"
 
@@ -99,16 +104,35 @@ export function AppointmentModal({ initialDate, appointment, onClose }: Appointm
     }
   }
 
-  async function handleCancel() {
+  async function handleCancel(reason: 'cancelado' | 'reprogramado') {
     if (!appointment) return
-    if (!window.confirm('¿Cancelar este turno?')) return
     setSaving(true)
+    setShowCancelChoice(false)
     try {
-      await cancelAppointment(appointment.id)
-      addToast('Turno cancelado', 'success')
+      await cancelAppointment(appointment.id, reason)
+      addToast(
+        reason === 'reprogramado'
+          ? 'Turno marcado como reprogramado. Se avisó al paciente por email si tenía uno cargado.'
+          : 'Turno cancelado. Se avisó al paciente por email si tenía uno cargado.',
+        'success'
+      )
       onClose()
     } catch {
       addToast('No se pudo cancelar el turno', 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleNoShow() {
+    if (!appointment) return
+    setSaving(true)
+    try {
+      await markNoShow(appointment.id)
+      addToast('Turno marcado como no asistido', 'success')
+      onClose()
+    } catch {
+      addToast('No se pudo actualizar el turno', 'error')
     } finally {
       setSaving(false)
     }
@@ -164,21 +188,40 @@ export function AppointmentModal({ initialDate, appointment, onClose }: Appointm
               </div>
             )}
 
-            <div className="flex flex-col gap-2 mt-2">
-              <button onClick={() => setMode('edit')} className="px-4 py-2.5 text-sm rounded-lg icon-btn-edit">
-                Editar
-              </button>
-              {isOpen && (
-                <>
-                  <button onClick={handleComplete} disabled={saving} className="px-4 py-2 text-sm text-white rounded-lg btn-save-gradient disabled:opacity-60">
-                    Completar consulta
-                  </button>
-                  <button onClick={handleCancel} disabled={saving} className="px-4 py-2 text-sm rounded-lg icon-btn-delete disabled:opacity-60">
-                    Cancelar turno
-                  </button>
-                </>
-              )}
-            </div>
+            {showCancelChoice ? (
+              <div className="rounded-xl p-3 info-tile flex flex-col gap-2">
+                <p className="text-sm text-primary">¿Cómo querés marcar este turno?</p>
+                <p className="text-xs text-muted">Si el paciente tiene email cargado, se le va a avisar automáticamente.</p>
+                <button onClick={() => handleCancel('cancelado')} disabled={saving} className="px-4 py-2 text-sm rounded-lg icon-btn-delete disabled:opacity-60">
+                  Cancelar turno
+                </button>
+                <button onClick={() => handleCancel('reprogramado')} disabled={saving} className="px-4 py-2 text-sm rounded-lg icon-btn-edit disabled:opacity-60">
+                  Marcar como reprogramado
+                </button>
+                <button onClick={() => setShowCancelChoice(false)} disabled={saving} className="px-4 py-2 text-sm rounded-lg text-secondary">
+                  Volver
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2 mt-2">
+                <button onClick={() => setMode('edit')} className="px-4 py-2.5 text-sm rounded-lg icon-btn-edit">
+                  Editar
+                </button>
+                {isOpen && (
+                  <>
+                    <button onClick={handleComplete} disabled={saving} className="px-4 py-2 text-sm text-white rounded-lg btn-save-gradient disabled:opacity-60">
+                      Completar consulta
+                    </button>
+                    <button onClick={handleNoShow} disabled={saving} className="px-4 py-2 text-sm rounded-lg icon-btn-edit disabled:opacity-60">
+                      Marcar como no asistió
+                    </button>
+                    <button onClick={() => setShowCancelChoice(true)} disabled={saving} className="px-4 py-2 text-sm rounded-lg icon-btn-delete disabled:opacity-60">
+                      Cancelar turno
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

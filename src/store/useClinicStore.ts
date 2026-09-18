@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Appointment, AuthUser, Doctor, Patient, PatientFilters, Toast, ToastType } from '../types'
+import type { Appointment, AuthUser, CancelReason, Doctor, Patient, PatientFilters, Toast, ToastType } from '../types'
 import {
   getPatients,
   getPatientById,
@@ -22,6 +22,7 @@ import {
   updateAppointment as updateAppointmentApi,
   completeAppointment as completeAppointmentApi,
   cancelAppointment as cancelAppointmentApi,
+  markNoShow as markNoShowApi,
   type NewAppointmentInput,
 } from '../services/appointmentService'
 
@@ -106,7 +107,8 @@ interface ClinicStore {
   createAppointment: (input: NewAppointmentInput) => Promise<void>
   updateAppointment: (id: string, input: Partial<Appointment>) => Promise<void>
   completeAppointment: (id: string, note?: string, paid?: boolean) => Promise<void>
-  cancelAppointment: (id: string) => Promise<void>
+  cancelAppointment: (id: string, reason?: CancelReason) => Promise<void>
+  markNoShow: (id: string) => Promise<void>
 }
 
 export const useClinicStore = create<ClinicStore>()(
@@ -440,8 +442,13 @@ export const useClinicStore = create<ClinicStore>()(
         set(state => ({ appointments: state.appointments.map(a => a.id === id ? updated : a) }))
       },
 
-      cancelAppointment: async (id) => {
-        const updated = await cancelAppointmentApi(id)
+      cancelAppointment: async (id, reason) => {
+        const updated = await cancelAppointmentApi(id, reason)
+        set(state => ({ appointments: state.appointments.map(a => a.id === id ? updated : a) }))
+      },
+
+      markNoShow: async (id) => {
+        const updated = await markNoShowApi(id)
         set(state => ({ appointments: state.appointments.map(a => a.id === id ? updated : a) }))
       },
     }),

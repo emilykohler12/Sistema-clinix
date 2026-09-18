@@ -15,6 +15,7 @@ const statusClass: Record<Appointment['status'], string> = {
   confirmado: 'badge-status-active',
   completado: 'badge-status-discharged',
   cancelado: 'badge-status-admitted',
+  no_asistio: 'badge-status-treatment',
 }
 
 export function CalendarPage() {

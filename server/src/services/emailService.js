@@ -29,6 +29,29 @@ export async function sendEmail({ to, subject, html }) {
   return response.json()
 }
 
+export function appointmentCancelEmail({ patientName, professionalName, date, reason }) {
+  const formatted = new Date(date).toLocaleString('es-AR', {
+    dateStyle: 'full',
+    timeStyle: 'short',
+  })
+  const isReprogramado = reason === 'reprogramado'
+  return {
+    subject: isReprogramado ? 'Tu turno fue reprogramado — Clinix' : 'Tu turno fue cancelado — Clinix',
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+        <h2>${isReprogramado ? 'Turno reprogramado' : 'Turno cancelado'}</h2>
+        <p>Hola ${patientName},</p>
+        <p>Te informamos que tu turno con <strong>${professionalName}</strong> que estaba programado para:</p>
+        <p style="font-size: 18px; font-weight: bold;">${formatted}</p>
+        <p>${isReprogramado
+          ? 'fue reprogramado. Por favor contactate con la clínica para coordinar una nueva fecha.'
+          : 'fue cancelado.'}</p>
+        <p>Ante cualquier duda, contactate con la clínica.</p>
+      </div>
+    `,
+  }
+}
+
 export function appointmentReminderEmail({ patientName, professionalName, date }) {
   const formatted = new Date(date).toLocaleString('es-AR', {
     dateStyle: 'full',

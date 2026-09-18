@@ -11,9 +11,10 @@ const appointmentSchema = new mongoose.Schema(
     paymentType: { type: String, enum: ['obra_social', 'particular'], default: 'particular' },
     status: {
       type: String,
-      enum: ['programado', 'confirmado', 'completado', 'cancelado'],
+      enum: ['programado', 'confirmado', 'completado', 'cancelado', 'no_asistio'],
       default: 'programado',
     },
+    cancelReason: { type: String, enum: ['cancelado', 'reprogramado', null], default: null },
     reminderSentAt: { type: Date, default: null },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },

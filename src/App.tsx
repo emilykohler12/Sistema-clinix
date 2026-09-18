@@ -8,6 +8,8 @@ import { Doctors } from './pages/Doctors'
 import { CalendarPage } from './pages/Calendar'
 import { PatientModal } from './components/organisms/PatientModal'
 import { Toast } from './components/organisms/Toast'
+import { OfflineBanner } from './components/atoms/OfflineBanner'
+import { ForgotPassword } from './pages/ForgotPassword'
 import { useClinicStore } from './store/useClinicStore'
 
 function RequireAuth({ children }: { children: React.ReactElement }) {
@@ -21,9 +23,11 @@ export default function App() {
 
   return (
     <>
+      <OfflineBanner />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/recuperar-contrasena" element={<ForgotPassword />} />
         <Route path="/" element={<RequireAuth><Home /></RequireAuth>} />
         <Route path="/pacientes/:id" element={<RequireAuth><PatientDetail /></RequireAuth>} />
         <Route path="/archivados" element={<RequireAuth><Archived /></RequireAuth>} />

@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { Appointment } from '../models/Appointment.js'
 import { Patient } from '../models/Patient.js'
 import { requireAuth } from '../middleware/auth.js'
+import { sendEmail, appointmentCancelEmail } from '../services/emailService.js'
 
 export const appointmentsRouter = Router()
 
@@ -99,19 +100,51 @@ appointmentsRouter.post('/:id/complete', async (req, res) => {
   res.json(populated)
 })
 
-// Cancela el turno (soft) salvo que se pida ?permanent=true
-appointmentsRouter.delete('/:id', async (req, res) => {
-  if (req.query.permanent === 'true') {
-    const appointment = await Appointment.findByIdAndDelete(req.params.id)
-    if (!appointment) return res.status(404).json({ message: 'Turno no encontrado' })
-    return res.status(204).send()
-  }
-
+// Marca que el paciente no se presentó al turno
+appointmentsRouter.post('/:id/no-show', async (req, res) => {
   const appointment = await Appointment.findByIdAndUpdate(
     req.params.id,
-    { status: 'cancelado' },
+    { status: 'no_asistio' },
     { new: true }
   )
+    .populate('patient', 'name documentId phone email')
+    .populate('professional', 'name specialty')
   if (!appointment) return res.status(404).json({ message: 'Turno no encontrado' })
   res.json(appointment)
+})
+
+// Cancela el turno (soft) y, si el paciente tiene email cargado, le avisa por mail
+appointmentsRouter.post('/:id/cancel', async (req, res) => {
+  const reason = req.body?.reason === 'reprogramado' ? 'reprogramado' : 'cancelado'
+  const appointment = await Appointment.findById(req.params.id)
+    .populate('patient', 'name documentId phone email')
+    .populate('professional', 'name specialty')
+  if (!appointment) return res.status(404).json({ message: 'Turno no encontrado' })
+
+  appointment.status = 'cancelado'
+  appointment.cancelReason = reason
+  await appointment.save()
+
+  if (appointment.patient?.email) {
+    try {
+      const { subject, html } = appointmentCancelEmail({
+        patientName: appointment.patient.name,
+        professionalName: appointment.professional?.name || 'tu profesional',
+        date: appointment.date,
+        reason,
+      })
+      await sendEmail({ to: appointment.patient.email, subject, html })
+    } catch (err) {
+      console.error(`[email] No se pudo avisar la cancelación del turno ${appointment.id}:`, err.message)
+    }
+  }
+
+  res.json(appointment)
+})
+
+// Elimina el turno de forma permanente
+appointmentsRouter.delete('/:id', async (req, res) => {
+  const appointment = await Appointment.findByIdAndDelete(req.params.id)
+  if (!appointment) return res.status(404).json({ message: 'Turno no encontrado' })
+  res.status(204).send()
 })

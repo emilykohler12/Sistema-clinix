@@ -69,6 +69,10 @@ export function Login() {
         </form>
 
         <p className="text-xs text-muted mt-4 text-center">
+          <Link to="/recuperar-contrasena" className="link-accent font-medium">¿Olvidaste tu contraseña?</Link>
+        </p>
+
+        <p className="text-xs text-muted mt-3 text-center">
           ¿Sos profesional y no tenés cuenta? <Link to="/register" className="link-accent font-medium">Registrate</Link>
         </p>
 

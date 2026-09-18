@@ -10,6 +10,8 @@ const userSchema = new mongoose.Schema(
     avatar: { type: String, trim: true, default: '' },
     active: { type: Boolean, default: true },
     archived: { type: Boolean, default: false },
+    resetCodeHash: { type: String, default: null, select: false },
+    resetCodeExpires: { type: Date, default: null, select: false },
   },
   {
     timestamps: true,
@@ -20,6 +22,8 @@ const userSchema = new mongoose.Schema(
         delete ret._id
         delete ret.__v
         delete ret.passwordHash
+        delete ret.resetCodeHash
+        delete ret.resetCodeExpires
         return ret
       },
     },

@@ -1,4 +1,4 @@
-import type { Appointment, PaymentType } from '../types'
+import type { Appointment, CancelReason, PaymentType } from '../types'
 import { apiFetch } from './httpClient'
 
 interface GetAppointmentsOptions {
@@ -51,6 +51,13 @@ export async function completeAppointment(id: string, note?: string, paid?: bool
   })
 }
 
-export async function cancelAppointment(id: string): Promise<Appointment> {
-  return apiFetch<Appointment>(`/appointments/${id}`, { method: 'DELETE' })
+export async function cancelAppointment(id: string, reason: CancelReason = 'cancelado'): Promise<Appointment> {
+  return apiFetch<Appointment>(`/appointments/${id}/cancel`, {
+    method: 'POST',
+    body: JSON.stringify({ reason }),
+  })
+}
+
+export async function markNoShow(id: string): Promise<Appointment> {
+  return apiFetch<Appointment>(`/appointments/${id}/no-show`, { method: 'POST' })
 }
